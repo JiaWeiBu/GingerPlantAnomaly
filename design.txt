@@ -1,0 +1,9 @@
+Model selector
+Dataset selector
+
+Train
+Predict
+Evaluate 
+
+Facade layer to register adapter
+one adapter per model
