@@ -29,7 +29,8 @@ Variables naming convention
 
 # Import only the function needed
 from enum import Enum, unique
-
+from pandas import DataFrame
+from pycaret.anomaly import setup, create_model, save_model, load_model, evaluate_model, predict_model, plot_model # type: ignore
 
 # Enum
 @unique
@@ -75,13 +76,51 @@ class ModelSource(Enum):
     PYCARET = 1
     CUSTOM = 2
 
+class PlotType(Enum):
+    """
+    Enum for different types of plots for anomaly detection models.
+
+    Plot from Pycaret
+    TSNE : t-Distributed Stochastic Neighbor Embedding
+    UMAP : Uniform Manifold Approximation and Projection
+    """
+    TSNE = "tsne"
+    UMAP = "umap"
+
 # Base class for anomaly detection models
 class Model:
-    def __init__(self, model_source : ModelSource, model_name : str, model_type : ModelType):
-        self.model_source : ModelSource = model_source
-        self.model_name : str = model_name
-        self.model_type : ModelType = model_type
+    def __init__(self) -> None:
+        self.model_ = None
 
-    def Predict(self, data):
-        raise NotImplementedError("Subclasses must implement this method.")
+    def Train(self, *, data : DataFrame, model_type : ModelType, model_path = None) -> None:
+        exp = setup(data=data, use_gpu=True)
+        
+        if model_path is None:
+            self.model_ = create_model(model_type.value)
+        else:
+            self.model_ = create_model(load_model("./model/"+model_path))
+
+    def evaluate(self) -> None:
+        evaluate_model(model=self.model_)
+
+    def Predict(self, data : DataFrame) -> DataFrame:
+        return predict_model(model=self.model_, data=data)
+
+    def Results(self, data : DataFrame, name : str) -> None:
+        predictions = self.Predict(data)
+        predictions.to_csv('./results/'+name+'.csv')
+
+    def Plot(self, plot_type : PlotType) -> None:
+        plot_model(model=self.model_, plot=plot_type.value)
+
+    def Save(self, model_name : str) -> None:
+        save_model(self.model_, "./model/"+model_name)
+
+    
+
+
+        
+
+
+
     

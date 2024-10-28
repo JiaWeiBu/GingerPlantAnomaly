@@ -2,8 +2,8 @@
 # Isolation Forest with pycaret
 
 # import libraries
-import pycaret.anomaly as anomaly_model
-from pycaret.datasets import get_data
+import pycaret.anomaly as anomaly_model # type: ignore
+from pycaret.datasets import get_data # type: ignore
 
 data = get_data('anomaly')
 
@@ -12,6 +12,8 @@ exp = anomaly_model.setup(data=data, normalize=True, use_gpu=True)
 model = anomaly_model.create_model('knn', fraction=0.1)
 
 anomaly_model.evaluate_model(model)
+
+anomaly_model.plot_model(model, plot='umap')
 
 predictions = anomaly_model.predict_model(model=model, data=data)
 
