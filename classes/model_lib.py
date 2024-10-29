@@ -29,8 +29,9 @@ Variables naming convention
 
 # Import only the function needed
 from enum import Enum, unique
-from pandas import DataFrame
+from pandas import DataFrame, concat
 from pycaret.anomaly import setup, create_model, save_model, load_model, evaluate_model, predict_model, plot_model # type: ignore
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score # type: ignore
 
 # Enum
 @unique
@@ -52,18 +53,18 @@ class ModelType(Enum):
     SOD : Subspace Outlier Detection
     SOS : Stochastic Outlier Selection
     """
-    ABOD = "abod"
-    CLUSTER = "cluster"
-    COF = "cof"
-    HISTOGRAM = "histogram"
-    IFOREST = "iforest"
-    KNN = "knn"
-    LOF = "lof"
-    SVM = "svm"
-    PCA = "pca"
-    MCD = "mcd"
-    SOD = "sod"
-    SOS = "sos"
+    abod_ = "abod"
+    cluster_ = "cluster"
+    cof_ = "cof"
+    histogram_ = "histogram"
+    iforest_ = "iforest"
+    knn_ = "knn"
+    lof_ = "lof"
+    svm_ = "svm"
+    pca_ = "pca"
+    sod_ = "sod"
+    sos_ = "sos"
+    mcd_ = "mcd"
 
 class ModelSource(Enum):
     """
@@ -73,8 +74,8 @@ class ModelSource(Enum):
     PYCARET : Pycaret library
     CUSTOM : Custom implementation
     """
-    PYCARET = 1
-    CUSTOM = 2
+    pycaret_ = 1
+    custom_ = 2
 
 class PlotType(Enum):
     """
@@ -84,31 +85,61 @@ class PlotType(Enum):
     TSNE : t-Distributed Stochastic Neighbor Embedding
     UMAP : Uniform Manifold Approximation and Projection
     """
-    TSNE = "tsne"
-    UMAP = "umap"
+    tsne_ = "tsne"
+    umap_ = "umap"
 
 # Base class for anomaly detection models
-class Model:
+class ModelUnit :
     def __init__(self) -> None:
         self.model_ = None
 
     def Train(self, *, data : DataFrame, model_type : ModelType, model_path = None) -> None:
-        exp = setup(data=data, use_gpu=True)
+        exp = setup(data=data, use_gpu=True, normalize_method="minmax", normalize=True)
         
         if model_path is None:
             self.model_ = create_model(model_type.value)
         else:
             self.model_ = create_model(load_model("./model/"+model_path))
 
-    def evaluate(self) -> None:
+    def Evaluate(self) -> None:
         evaluate_model(model=self.model_)
 
     def Predict(self, data : DataFrame) -> DataFrame:
         return predict_model(model=self.model_, data=data)
 
     def Results(self, data : DataFrame, name : str) -> None:
-        predictions = self.Predict(data)
+        # Save prediction of last 2 columns
+        predictions = self.Predict(data).iloc[:, -2:]
         predictions.to_csv('./results/'+name+'.csv')
+        print("Results saved at ./results/"+name+".csv")
+
+    def EvaluationMetrics(self, good : DataFrame, defective : DataFrame, name : str) -> None:
+        good_predictions = DataFrame(self.Predict(good)["Anomaly"])
+        defective_predictions = DataFrame(self.Predict(defective)["Anomaly"])
+
+        # insert another column called "label" to indicate good or defective
+        good_predictions["label"] = 0
+        defective_predictions["label"] = 1
+
+        # combine good and defective predictions
+        result = concat([good_predictions, defective_predictions])
+
+        result.to_csv('./results/'+name+'.csv')
+
+        # accuracy, percision, recall, f1-score
+        accuracy = accuracy_score(result["label"], result["Anomaly"])
+        precision = precision_score(result["label"], result["Anomaly"])
+        recall = recall_score(result["label"], result["Anomaly"])
+        f1 = f1_score(result["label"], result["Anomaly"])
+
+        print(name, "result")
+        print("Accuracy : ", accuracy)
+        print("Precision : ", precision)
+        print("Recall : ", recall)
+        print("F1-score : ", f1)
+
+        with open('./results/result.csv', 'a') as f:
+            f.write(f"{name},{accuracy},{precision},{recall},{f1}\n")
 
     def Plot(self, plot_type : PlotType) -> None:
         plot_model(model=self.model_, plot=plot_type.value)
