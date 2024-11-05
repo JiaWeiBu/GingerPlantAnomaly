@@ -30,12 +30,12 @@ Variables naming convention
 # Import only the function needed
 from enum import Enum, unique
 from pandas import DataFrame, concat
-from pycaret.anomaly import setup, create_model, save_model, load_model, evaluate_model, predict_model, plot_model # type: ignore
+from pycaret.anomaly import setup, create_model, save_model, load_model, evaluate_model, predict_model, plot_model, get_config, set_config # type: ignore
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score # type: ignore
 
 # Enum
 @unique
-class ModelType(Enum):
+class PyCaretModelType(Enum):
     """
     Enum for different types of anomaly detection models.
 
@@ -64,20 +64,20 @@ class ModelType(Enum):
     pca_ = "pca"
     sod_ = "sod"
     sos_ = "sos"
-    mcd_ = "mcd"
+    #mcd_ = "mcd"
 
-class ModelSource(Enum):
-    """
-    Enum for different sources of anomaly detection models.
+# class ModelSource(Enum):
+#     """
+#     Enum for different sources of anomaly detection models.
 
-    Model from Pycaret
-    PYCARET : Pycaret library
-    CUSTOM : Custom implementation
-    """
-    pycaret_ = 1
-    custom_ = 2
+#     Model from Pycaret
+#     PYCARET : Pycaret library
+#     CUSTOM : Custom implementation
+#     """
+#     pycaret_ = 1
+#     custom_ = 2
 
-class PlotType(Enum):
+class PyCaretPlotType(Enum):
     """
     Enum for different types of plots for anomaly detection models.
 
@@ -89,11 +89,11 @@ class PlotType(Enum):
     umap_ = "umap"
 
 # Base class for anomaly detection models
-class ModelUnit :
+class PyCaretModelUnit :
     def __init__(self) -> None:
         self.model_ = None
 
-    def Train(self, *, data : DataFrame, model_type : ModelType, model_path = None) -> None:
+    def Train(self, *, data : DataFrame, model_type : PyCaretModelType, model_path = None) -> None:
         exp = setup(data=data, use_gpu=True, normalize_method="minmax", normalize=True)
         
         if model_path is None:
@@ -141,16 +141,64 @@ class ModelUnit :
         with open('./results/result.csv', 'a') as f:
             f.write(f"{name},{accuracy},{precision},{recall},{f1}\n")
 
-    def Plot(self, plot_type : PlotType) -> None:
+    def Plot(self, plot_type : PyCaretPlotType) -> None:
         plot_model(model=self.model_, plot=plot_type.value)
 
     def Save(self, model_name : str) -> None:
         save_model(self.model_, "./model/"+model_name)
 
+    def GetConfig(self) -> dict:
+        return get_config()
+
+    def SetConfig(self, config : dict) -> None:
+        set_config(config)
+
     
+# AutoEncoder Model
+# torch nn.Module
+class AutoEncoderModel():
+    def __init__(self):
+        pass
 
+    def Train(self):
+        pass
 
-        
+    def Evaluate(self):
+        pass
+
+    def Predict(self):
+        pass
+
+    def Results(self):
+        pass
+
+    def EvaluationMetrics(self):
+        pass
+
+    def Plot(self):
+        pass
+
+    def Save(self):
+        pass
+
+    def GetConfig(self):
+        pass
+
+    def SetConfig(self):
+        pass
+
+    def Forward(self):
+        pass
+
+    def Backward(self):
+        pass
+
+    def Encoder(self):
+        pass
+
+    def Decoder(self):
+        pass
+
 
 
 

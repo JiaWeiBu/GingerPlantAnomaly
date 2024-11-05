@@ -1,48 +1,113 @@
-from classes.model_lib import ModelType, PlotType, ModelUnit
+from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit
 from pycaret.datasets import get_data # type: ignore
-from classes.dataset_lib import DatasetUnit, ImageUnit, ColorMode
+from classes.dataset_lib import DatasetUnit, ImageUnit, ColorMode, MVTecDataset, MVTecDatasetType, MVTecDatasetTypeAnomaly
 from classes.util_lib import Size
 from pandas import DataFrame
 
-def main():
-    # Load Data
+DATASET_PATH = "./datasets"
+
+def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, size: Size, config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
+    if config:
+        print("Loading Data")
+
     train_module = DatasetUnit()
-    train_module.LoadImagesResize("./datasets/ds1/train", ColorMode.grayscale_, Size(64, 64))
+    train_module.LoadImagesResize(train_path, colour_mode, size)
 
     test_good_module = DatasetUnit()
-    test_good_module.LoadImagesResize("./datasets/ds1/test/good", ColorMode.grayscale_, Size(64, 64))
+    test_good_module.LoadImagesResize(test_good_path, colour_mode, size)
     
     test_defective_module = DatasetUnit()
-    test_defective_module.LoadImagesResize("./datasets/ds1/test/defective", ColorMode.grayscale_, Size(64, 64))
+    test_defective_module.LoadImagesResize(test_defective_path, colour_mode, size)
+
+    if config:
+        print("Converting to DataFrame")
+        
+    train = DataFrame(train_module.images_)
+    test_good = DataFrame(test_good_module.images_)
+    test_defective = DataFrame(test_defective_module.images_)
+
+    print("Train Shape: ", train.shape)
+    print("Test Good Shape: ", test_good.shape)
+    print("Test Defective Shape: ", test_defective.shape)
+
+    if config:
+        print("Data Loaded")
+
+    return train, test_good, test_defective
+
+def LoadMVTecData(*, dataset_type: MVTecDatasetType, size: Size, config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
+    if config:
+        print("Loading Data")
+
+    train_module = DatasetUnit()
+    train_module.LoadImagesResize(f"{DATASET_PATH}/{dataset_type.value}/train/good", colour_mode, size)
+
+    test_good_module = DatasetUnit()
+    test_good_module.LoadImagesResize(f"{DATASET_PATH}/{dataset_type.value}/test/good", colour_mode, size)
+
+    test_defective_module = DatasetUnit()
+    for anomaly in MVTecDataset[dataset_type]:
+        test_defective_module.LoadImagesResize(f"{DATASET_PATH}/{dataset_type.value}/test/{anomaly.value}", colour_mode, size)
 
     train = DataFrame(train_module.images_)
     test_good = DataFrame(test_good_module.images_)
     test_defective = DataFrame(test_defective_module.images_)
 
+    print("Train Shape: ", train.shape)
+    print("Test Good Shape: ", test_good.shape)
+    print("Test Defective Shape: ", test_defective.shape)
+
+    if config:
+        print("Data Loaded")
+
+    return train, test_good, test_defective
+
+def PycaretTrainTestSequence(*,model : PyCaretModelUnit, train : DataFrame, test_good : DataFrame, test_defective : DataFrame, dataset_type : MVTecDatasetType, model_type : PyCaretModelType, size : str) -> None:
+    model.Train(data=train, model_type=model_type)
+    #model.Evaluate()
+    #model.Plot(PlotType.tsne_)
+    #model.Save(f"{model_type.value}_model_{size}")
+    # model.Results(test_good, "knn_model_good_1")
+    # model.Results(test_defective, "knn_model_defective_1")
+    model.EvaluationMetrics(test_good, test_defective, f"{dataset_type.value}_{model_type.value}")
+
+def main():
     # Train Model
     # For each ModelType in ModelType Enum, train the model and save it
+
+    #log error
+    with open('./results/error.log', 'w') as f:
+        f.write("")
+
     with open('./results/result.csv', 'w') as f:
         f.write("Model,Accuracy,Precision,Recall,F1-score\n")
+
+    image_size : Size = Size(64, 64)
+
+    #Load Data from each MVTec Dataset Type
+    for dataset_type in MVTecDatasetType:
+        with open('./results/result.csv', 'a') as f:
+            f.write(f"\nType: {dataset_type}\n")
+        
+        # Load Data
+        train, test_good, test_defective = LoadMVTecData(dataset_type=dataset_type, size=image_size, config=True)
+
     
-    total_model = len(ModelType)
-    count = 1
-    for model_type in ModelType:
-        try:
-            print(f"Training {model_type.value} model {count}/{total_model}")
-            model = ModelUnit()
-            model.Train(data=train, model_type=model_type)
+        print("Training Models")
+        total_model = len(PyCaretModelType)
+        count = 1
+        for model_type in PyCaretModelType:
+            try:
+                print(f"Training {dataset_type.value} on {model_type.value} model {count}/{total_model}")
+                model = PyCaretModelUnit()
+                PycaretTrainTestSequence(model=model, train=train, test_good=test_good, test_defective=test_defective, dataset_type=dataset_type, model_type=model_type, size=image_size)
 
-            #model.Evaluate()
-            #model.Plot(PlotType.tsne_)
-            model.Save(f"{model_type.value}_model_1")
-            # model.Results(test_good, "knn_model_good_1")
-            # model.Results(test_defective, "knn_model_defective_1")
-            model.EvaluationMetrics(test_good, test_defective, model_type.value)
-
-            count += 1
-        except Exception as e:
-            print(f"Error training {model_type.value} model: {e}")
-            continue
+                count += 1
+            except Exception as e:
+                print(f"Error training for {dataset_type.value} on {model_type.value} model: {e}")
+                with open('./results/error.log', 'a') as f:
+                    f.write(f"Error training for {dataset_type.value} on {model_type.value} model: {e}\n")
+                continue
 
 
 if __name__ == "__main__":
