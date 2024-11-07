@@ -1,12 +1,14 @@
-from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit
+from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit # type: ignore
 from pycaret.datasets import get_data # type: ignore
-from classes.dataset_lib import DatasetUnit, ImageUnit, ColorMode, MVTecDataset, MVTecDatasetType, MVTecDatasetTypeAnomaly
+from classes.dataset_lib import DatasetUnit, ImageUnit
+from classes.enum import ColorMode
+from classes.mvtec_lib import MVTecDataset, MVTecDatasetType
 from classes.util_lib import Size
 from pandas import DataFrame
 
 DATASET_PATH = "./datasets"
 
-def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, size: Size, config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
+def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, size: Size[int], config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
     if config:
         print("Loading Data")
 
@@ -35,7 +37,7 @@ def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, 
 
     return train, test_good, test_defective
 
-def LoadMVTecData(*, dataset_type: MVTecDatasetType, size: Size, config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
+def LoadMVTecData(*, dataset_type: MVTecDatasetType, size: Size[int], config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
     if config:
         print("Loading Data")
 
@@ -82,7 +84,7 @@ def main():
     with open('./results/result.csv', 'w') as f:
         f.write("Model,Accuracy,Precision,Recall,F1-score\n")
 
-    image_size : Size = Size(64, 64)
+    image_size : Size[int] = Size[int](64, 64)
 
     #Load Data from each MVTec Dataset Type
     for dataset_type in MVTecDatasetType:

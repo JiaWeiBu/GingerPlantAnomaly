@@ -1,23 +1,14 @@
-# unsupervised anomaly detection model
-# Isolation Forest with pycaret
+# anomalib test
+from classes.anomalib_lib import GetModel
 
-# import libraries
-import pycaret.anomaly as anomaly_model # type: ignore
-from pycaret.datasets import get_data # type: ignore
+def main():
+    print("anomalib test")
+    print(GetModel())
+    print(len(GetModel()))
 
-data = get_data('anomaly')
+    with open('anomalib_model.txt', 'w') as f:
+        for model in GetModel():
+            f.write(f"{model}\n")
 
-exp = anomaly_model.setup(data=data, normalize=True, use_gpu=True)
-
-model = anomaly_model.create_model('knn', fraction=0.1)
-
-anomaly_model.evaluate_model(model)
-
-anomaly_model.plot_model(model, plot='umap')
-
-predictions = anomaly_model.predict_model(model=model, data=data)
-
-# save predictions into a csv file
-predictions.to_csv('predictions.csv')
-
-anomaly_model.save_model(model, 'knn_model')
+if __name__ == "__main__":
+    main()
