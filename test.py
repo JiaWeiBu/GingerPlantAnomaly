@@ -1,8 +1,7 @@
 
 from pandas import DataFrame
 from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit # type: ignore
-from classes.dataset_lib import DatasetUnit
-from classes.enum import ColorMode, MVTecDataset, MVTecDatasetType
+from classes.dataset_lib import DatasetUnit, MVTecDataset, MVTecDatasetType
 from classes.util_lib import Size, Unused
 
 DATASET_PATH = "./datasets"

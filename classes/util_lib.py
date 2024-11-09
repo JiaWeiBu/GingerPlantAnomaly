@@ -5,7 +5,7 @@ def Deprecated(message: str) -> Callable:
     Decorator to mark a function as deprecated
 
     :example:
-    >>> @deprecated("This function is deprecated")
+    >>> @Deprecated("This function is deprecated")
     >>> def old_function() -> None:
     >>>     pass
     """

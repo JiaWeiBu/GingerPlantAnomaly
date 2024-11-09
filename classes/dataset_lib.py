@@ -1,31 +1,11 @@
-# This file provides utilities for reading and preprocessing images using OpenCV,
-# intended for use in dataset preparation and image processing tasks. It includes
-# functions for loading images from specified paths, applying common preprocessing
-# techniques (such as resizing, normalization, and grayscale conversion), and 
-# preparing the images for further analysis or model training. By centralizing image
-# loading and preprocessing in one file, this setup simplifies the pipeline for 
-# preparing images for a dataset.
-"""
-Class : ImageDatasetLoader
-Purpose : A class to manage reading and preprocessing images for dataset preparation
-          using OpenCV. It standardizes common image processing operations for 
-          consistency across the dataset.
-
-Methods :
-  - __init__ : Initializes parameters for image loading, including desired image size and color mode.
-  - load_images : Reads images from a specified directory, returning them as a list or batch.
-  - preprocess_image : Applies standard preprocessing steps (e.g., resizing, normalization, grayscale conversion).
-  - batch_preprocess : Processes a batch of images, preparing them for analysis or model training.
-"""
-
-# Import only the function needed
+from typing import Final
+from enum import Enum, unique
 from os import listdir, makedirs
 from os.path import isfile, join, exists, dirname
-from cv2 import imread, imshow, waitKey, destroyAllWindows, imwrite, cvtColor, resize
+from cv2 import imread, imshow, waitKey, destroyAllWindows, imwrite, cvtColor, resize, IMREAD_COLOR, IMREAD_GRAYSCALE, INTER_NEAREST, INTER_LINEAR, INTER_CUBIC, INTER_LANCZOS4, COLOR_RGB2GRAY, COLOR_GRAY2RGB
 from numpy import ndarray
 
-from classes.util_lib import Size, Rect # type: ignore
-from classes.enum import ColorMode, ColorConversion, ImageInterpolation
+from classes.util_lib import Size, Rect 
 
 # Create a image processing class
 class ImageUnit:
@@ -33,34 +13,74 @@ class ImageUnit:
     Agent for image operations.
     Used for loading, saving, resizing, converting color, and cropping images.
 
-    Attributes:
-        None
+    Enum:
+        ColorModeEnum : Enum for different color modes.
+        ColorConversionEnum : Enum for different color conversions.
+        ImageInterpolationEnum : Enum for different interpolation methods for image resizing.
+
 
     Methods:
-        LoadImage: Load image from file.
-        SaveImage: Save image to file.
-        ResizeImage: Resize image.
-        ConvertColor: Convert color of image.
-        CropImage: Crop image.
-        LoadVideo: Load video from file.
-        FindPlantMask: Find plant mask in the image using color range.
-        FindPlantContour: Find plant contour in the mask.
+        LoadImage : Load image from file.
+        SaveImage : Save image to file.
+        ResizeImage : Resize image.
+        ConvertColor : Convert color of image.
+        CropImage : Crop image.
+        LoadVideo : Load video from file.
+        FindPlantMask : Find plant mask in the image using color range.
+        FindPlantContour : Find plant contour in the mask.
 
     :example:
     >>> image_unit : ImageUnit = ImageUnit()  
     >>> image : ndarray = image_unit.LoadImage("path/to/image.jpg", ColorMode.rgb)
     """
+    @unique
+    class ColorModeEnum(Enum):
+        """
+        Enum for different color modes for image processing.
+
+        rgb_ : RGB color mode
+        grayscale_ : Grayscale color mode
+        """
+        rgb_ = IMREAD_COLOR
+        grayscale_ = IMREAD_GRAYSCALE
+
+    # Enum for color conversion
+    @unique
+    class ColorConversionEnum(Enum):
+        """
+        Enum for different color conversion methods for image processing.
+
+        rgb2gray_ : RGB to Grayscale conversion
+        gray2rgb_ : Grayscale to RGB
+        """
+        rgb2gray_ = COLOR_RGB2GRAY
+        gray2rgb_ = COLOR_GRAY2RGB
+
+    @unique
+    class ImageInterpolationEnum(Enum):
+        """
+        Enum for different interpolation methods for image resizing.
+
+        nearest_ : Nearest neighbor interpolation
+        linear_ : Linear interpolation
+        cubic_ : Cubic interpolation
+        lanczos4_ : Lanczos4 interpolation
+        """
+        nearest_ = INTER_NEAREST
+        linear_ = INTER_LINEAR
+        cubic_ = INTER_CUBIC
+        lanczos4_ = INTER_LANCZOS4
 
     def __init__(self):
         ...
     
-    def LoadImage(self, path: str, color_mode: ColorMode) -> ndarray:
+    def LoadImage(self, path: str, color_mode: ColorModeEnum) -> ndarray:
         """
         Load image from file.
 
         Args:
-            path (str): Path to the image file.
-            color_mode (ColorMode): Color mode of the image.
+            path : (str) Path to the image file.
+            color_mode : (ColorMode) Color mode of the image.
 
         Returns:
             ndarray: Image data.
@@ -79,8 +99,8 @@ class ImageUnit:
         Save image to file.
 
         Args:
-            path (str): Path to save the image.
-            image (ndarray): Image data.
+            path : (str) Path to save the image.
+            image : (ndarray) Image data.
 
         :example:
         >>> image_unit : ImageUnit = ImageUnit()
@@ -98,7 +118,7 @@ class ImageUnit:
         if not imwrite(path, image):
             raise IOError(f"Failed to save image to {path}")
 
-    def ResizeImage(self, image: ndarray, size: Size[int], interpolation: ImageInterpolation = ImageInterpolation.linear_) -> ndarray:
+    def ResizeImage(self, image: ndarray, size: Size[int], interpolation: ImageInterpolationEnum = ImageInterpolationEnum.linear_) -> ndarray:
         """
         Resize image.
 
@@ -119,7 +139,7 @@ class ImageUnit:
 
         return resize(image, (size.width_, size.height_), interpolation=interpolation.value)
 
-    def ConvertColor(self, image: ndarray, conversion: ColorConversion) -> ndarray:
+    def ConvertColor(self, image: ndarray, conversion: ColorConversionEnum) -> ndarray:
         """
         Convert color of image.
 
@@ -182,6 +202,13 @@ class DatasetUnit:
     Agent for dataset operations.
     Such as loading images and process, it uses imageunit as most of the functionality is related to image processing.
 
+    Enum:
+        MVTecDatasetTypeEnum : Enum for different MVTec dataset types.
+        MVTecDatasetTypeAnomalyEnum : Enum for different MVTec dataset anomaly types.
+    
+    Dictionary:
+        MVTecDataset : Dictionary for different MVTec dataset types and anomaly types.
+
     Attributes:
         image_unit_ : ImageUnit : Image processing unit.
         images_ : list[ndarray] : List of images.
@@ -201,6 +228,195 @@ class DatasetUnit:
     >>> dataset_unit : DatasetUnit = DatasetUnit()
     >>> dataset_unit.LoadImages("path/to/images", ColorMode.rgb)
     """
+    @unique
+    class MVTecDatasetTypeEnum(Enum):
+        bottle_ = "bottle"
+        cable_ = "cable"
+        capsule_ = "capsule"
+        carpet_ = "carpet"
+        grid_ = "grid"
+        hazelnut_ = "hazelnut"
+        leather_ = "leather"
+        metal_nut_ = "metal_nut"
+        pill_ = "pill"
+        screw_ = "screw"
+        tile_ = "tile"
+        toothbrush_ = "toothbrush"
+        transistor_ = "transistor"
+        wood_ = "wood"
+        zipper_ = "zipper"
+
+    @unique
+    class MVTecDatasetTypeAnomalyEnum(Enum):
+        broken_large_ = "broken_large" 
+        broken_small_ = "broken_small"
+        contamination_ = "contamination"
+        bent_wire_ = "bent_wire"
+        cable_swap_ = "cable_swap"
+        combined_ = "combined"
+        cut_inner_insulation_ = "cut_inner_insulation"
+        cut_outer_insulation_ = "cut_outer_insulation"
+        missing_cable_ = "missing_cable"
+        missing_wire_ = "missing_wire"
+        poke_insulation_ = "poke_insulation"
+        crack_ = "crack"
+        faulty_imprint_ = "faulty_imprint"
+        poke_ = "poke"
+        scratch_ = "scratch"
+        squeeze_ = "squeeze"
+        color_ = "color"
+        cut_ = "cut"
+        hole_ = "hole"
+        metal_contamination_ = "metal_contamination"
+        thread_ = "thread"
+        bent_ = "bent"
+        broken_ = "broken"
+        glue_ = "glue"
+        print_ = "print"
+        fold_ = "fold"
+        flip_ = "flip"
+        pill_type_ = "pill_type"
+        manipulated_front_ = "manipulated_front"
+        scratch_head_ = "scratch_head"
+        scratch_neck_ = "scratch_neck"
+        thread_side_ = "thread_side"
+        thread_top_ = "thread_top"
+        glue_strip_ = "glue_strip"
+        gray_stroke_ = "gray_stroke"
+        oil_ = "oil"
+        rough_ = "rough"
+        defective_ = "defective"
+        bent_lead_ = "bent_lead"
+        cut_lead_ = "cut_lead"
+        damaged_case_ = "damaged_case"
+        misplaced_ = "misplaced"
+        liquid_ = "liquid"
+        broken_teeth_ = "broken_teeth"
+        fabric_border_ = "fabric_border"
+        fabric_interior_ = "fabric_interior"
+        split_teeth_ = "split_teeth"
+        squeezed_teeth_ = "squeezed_teeth"
+
+    # hash table for MVTec dataset
+    MVTecDataset : Final[dict[MVTecDatasetTypeEnum, list[MVTecDatasetTypeAnomalyEnum]]] = {
+        MVTecDatasetTypeEnum.bottle_ : [
+            MVTecDatasetTypeAnomalyEnum.broken_large_, 
+            MVTecDatasetTypeAnomalyEnum.broken_small_, 
+            MVTecDatasetTypeAnomalyEnum.contamination_
+            ],
+
+        MVTecDatasetTypeEnum.cable_ : [ 
+            MVTecDatasetTypeAnomalyEnum.bent_wire_,
+            MVTecDatasetTypeAnomalyEnum.cable_swap_, 
+            MVTecDatasetTypeAnomalyEnum.combined_, 
+            MVTecDatasetTypeAnomalyEnum.cut_inner_insulation_, 
+            MVTecDatasetTypeAnomalyEnum.cut_outer_insulation_, 
+            MVTecDatasetTypeAnomalyEnum.missing_cable_, 
+            MVTecDatasetTypeAnomalyEnum.missing_wire_, 
+            MVTecDatasetTypeAnomalyEnum.poke_insulation_
+            ],
+
+        MVTecDatasetTypeEnum.capsule_ : [
+            MVTecDatasetTypeAnomalyEnum.crack_, 
+            MVTecDatasetTypeAnomalyEnum.faulty_imprint_, 
+            MVTecDatasetTypeAnomalyEnum.poke_, 
+            MVTecDatasetTypeAnomalyEnum.scratch_, 
+            MVTecDatasetTypeAnomalyEnum.squeeze_
+            ],
+
+        MVTecDatasetTypeEnum.carpet_ : [
+            MVTecDatasetTypeAnomalyEnum.color_, 
+            MVTecDatasetTypeAnomalyEnum.cut_, 
+            MVTecDatasetTypeAnomalyEnum.hole_, 
+            MVTecDatasetTypeAnomalyEnum.metal_contamination_, 
+            MVTecDatasetTypeAnomalyEnum.thread_
+            ],
+
+        MVTecDatasetTypeEnum.grid_ : [
+            MVTecDatasetTypeAnomalyEnum.bent_, 
+            MVTecDatasetTypeAnomalyEnum.broken_, 
+            MVTecDatasetTypeAnomalyEnum.glue_, 
+            MVTecDatasetTypeAnomalyEnum.metal_contamination_, 
+            MVTecDatasetTypeAnomalyEnum.thread_
+            ],
+
+        MVTecDatasetTypeEnum.hazelnut_ : [
+            MVTecDatasetTypeAnomalyEnum.crack_, 
+            MVTecDatasetTypeAnomalyEnum.cut_, 
+            MVTecDatasetTypeAnomalyEnum.hole_, 
+            MVTecDatasetTypeAnomalyEnum.print_
+            ],
+
+        MVTecDatasetTypeEnum.leather_ : [
+            MVTecDatasetTypeAnomalyEnum.color_,
+            MVTecDatasetTypeAnomalyEnum.cut_, 
+            MVTecDatasetTypeAnomalyEnum.fold_, 
+            MVTecDatasetTypeAnomalyEnum.glue_,
+            MVTecDatasetTypeAnomalyEnum.poke_,
+            ],
+
+        MVTecDatasetTypeEnum.metal_nut_ : [
+            MVTecDatasetTypeAnomalyEnum.bent_, 
+            MVTecDatasetTypeAnomalyEnum.color_, 
+            MVTecDatasetTypeAnomalyEnum.flip_,
+            MVTecDatasetTypeAnomalyEnum.scratch_,
+            ],
+
+        MVTecDatasetTypeEnum.pill_ : [
+            MVTecDatasetTypeAnomalyEnum.color_,
+            MVTecDatasetTypeAnomalyEnum.combined_,
+            MVTecDatasetTypeAnomalyEnum.contamination_,
+            MVTecDatasetTypeAnomalyEnum.crack_,
+            MVTecDatasetTypeAnomalyEnum.faulty_imprint_,
+            MVTecDatasetTypeAnomalyEnum.pill_type_,
+            MVTecDatasetTypeAnomalyEnum.scratch_,
+            ],
+
+        MVTecDatasetTypeEnum.screw_ : [
+            MVTecDatasetTypeAnomalyEnum.manipulated_front_,
+            MVTecDatasetTypeAnomalyEnum.scratch_head_,
+            MVTecDatasetTypeAnomalyEnum.scratch_neck_,
+            MVTecDatasetTypeAnomalyEnum.thread_side_,
+            MVTecDatasetTypeAnomalyEnum.thread_top_,
+            ],
+
+        MVTecDatasetTypeEnum.tile_ : [
+            MVTecDatasetTypeAnomalyEnum.crack_,
+            MVTecDatasetTypeAnomalyEnum.glue_strip_,
+            MVTecDatasetTypeAnomalyEnum.gray_stroke_,
+            MVTecDatasetTypeAnomalyEnum.oil_,
+            MVTecDatasetTypeAnomalyEnum.rough_,
+            ],
+
+        MVTecDatasetTypeEnum.toothbrush_ : [ 
+            MVTecDatasetTypeAnomalyEnum.defective_,
+            ],
+
+        MVTecDatasetTypeEnum.transistor_ : [
+            MVTecDatasetTypeAnomalyEnum.bent_lead_,
+            MVTecDatasetTypeAnomalyEnum.cut_lead_,
+            MVTecDatasetTypeAnomalyEnum.damaged_case_,
+            MVTecDatasetTypeAnomalyEnum.misplaced_,
+            ],
+
+        MVTecDatasetTypeEnum.wood_ : [
+            MVTecDatasetTypeAnomalyEnum.color_,
+            MVTecDatasetTypeAnomalyEnum.combined_,
+            MVTecDatasetTypeAnomalyEnum.hole_,
+            MVTecDatasetTypeAnomalyEnum.liquid_,
+            MVTecDatasetTypeAnomalyEnum.scratch_,
+            ],
+
+        MVTecDatasetTypeEnum.zipper_ : [
+            MVTecDatasetTypeAnomalyEnum.broken_teeth_,
+            MVTecDatasetTypeAnomalyEnum.combined_,
+            MVTecDatasetTypeAnomalyEnum.fabric_border_,
+            MVTecDatasetTypeAnomalyEnum.fabric_interior_,
+            MVTecDatasetTypeAnomalyEnum.rough_,
+            MVTecDatasetTypeAnomalyEnum.split_teeth_,
+            MVTecDatasetTypeAnomalyEnum.squeezed_teeth_,
+            ]
+    }
 
     def __init__(self) -> None:
         """
@@ -238,7 +454,7 @@ class DatasetUnit:
         """
         return [join(path, f) for f in listdir(path) if isfile(join(path, f))]
 
-    def LoadImages(self, paths: str, color_mode: ColorMode) -> None:
+    def LoadImages(self, paths: str, color_mode: ImageUnit.ColorModeEnum) -> None:
         """
         Load images from a specified directory and store them in the dataset.
         Images are stored as flattened arrays for further processing.
@@ -265,7 +481,7 @@ class DatasetUnit:
 
         print(f"Loaded {len(dir_images)} images from {paths}")
 
-    def LoadImagesResize(self, paths: str, color_mode: ColorMode, size: Size) -> None:
+    def LoadImagesResize(self, paths: str, color_mode: ImageUnit.ColorModeEnum, size: Size) -> None:
         """
         Load images from a specified directory, resize them to a specified size, and store them in the dataset. 
         Images are stored as flattened arrays for further processing. 
