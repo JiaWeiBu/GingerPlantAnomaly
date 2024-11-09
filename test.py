@@ -1,10 +1,9 @@
-from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit # type: ignore
-from pycaret.datasets import get_data # type: ignore
-from classes.dataset_lib import DatasetUnit, ImageUnit
-from classes.enum import ColorMode
-from classes.mvtec_lib import MVTecDataset, MVTecDatasetType
-from classes.util_lib import Size
+
 from pandas import DataFrame
+from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit # type: ignore
+from classes.dataset_lib import DatasetUnit
+from classes.enum import ColorMode, MVTecDataset, MVTecDatasetType
+from classes.util_lib import Size, Unused
 
 DATASET_PATH = "./datasets"
 
@@ -71,24 +70,23 @@ def PycaretTrainTestSequence(*,model : PyCaretModelUnit, train : DataFrame, test
     #model.Save(f"{model_type.value}_model_{size}")
     # model.Results(test_good, "knn_model_good_1")
     # model.Results(test_defective, "knn_model_defective_1")
+    Unused(size)
     model.EvaluationMetrics(test_good, test_defective, f"{dataset_type.value}_{model_type.value}")
 
 def main():
     # Train Model
-    # For each ModelType in ModelType Enum, train the model and save it
-
-    #log error
-    with open('./results/error.log', 'w') as f:
+    # For each ModelType in ModelType Enum, train the model and save it log error
+    with open('./results/error.log', 'w', encoding='utf-8') as f:
         f.write("")
 
-    with open('./results/result.csv', 'w') as f:
+    with open('./results/result.csv', 'w', encoding='utf-8') as f:
         f.write("Model,Accuracy,Precision,Recall,F1-score\n")
 
     image_size : Size[int] = Size[int](64, 64)
 
     #Load Data from each MVTec Dataset Type
     for dataset_type in MVTecDatasetType:
-        with open('./results/result.csv', 'a') as f:
+        with open('./results/result.csv', 'a', encoding='utf-8') as f:
             f.write(f"\nType: {dataset_type}\n")
         
         # Load Data
@@ -107,7 +105,7 @@ def main():
                 count += 1
             except Exception as e:
                 print(f"Error training for {dataset_type.value} on {model_type.value} model: {e}")
-                with open('./results/error.log', 'a') as f:
+                with open('./results/error.log', 'a', encoding='utf-8') as f:
                     f.write(f"Error training for {dataset_type.value} on {model_type.value} model: {e}\n")
                 continue
 
