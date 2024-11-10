@@ -1,4 +1,7 @@
 from typing import TypeVar, Generic, Callable
+from enum import Enum
+from time import time
+
 # Deprecated Decorator
 def Deprecated(message: str) -> Callable:
     """
@@ -25,6 +28,65 @@ def Unused(*args) -> None:
     >>> Unused(1)
     """
     pass
+
+# Color Print
+class Color:
+    """
+    Color class for printing colored text
+
+    :methods:
+    Print : Prints colored text
+    """
+
+    class ColorCode(Enum):
+        """
+        ColorCode class for printing colored text
+
+        :methods:
+        red_ : Red color code
+        green_ : Green color code
+        yellow_ : Yellow color code
+        blue_ : Blue color code
+        purple_ : Purple color code
+        cyan_ : Cyan color code
+        white_ : White color code
+        end_ : End color code
+        """
+        red_ = "\033[91m"
+        green_ = "\033[92m"
+        yellow_ = "\033[93m"
+        blue_ = "\033[94m"
+        purple_ = "\033[95m"
+        cyan_ = "\033[96m"
+        white_ = "\033[97m"
+        end_ = "\033[0m"
+
+    @staticmethod
+    def Print(color: ColorCode, text: str) -> None:
+        """
+        Prints colored text
+
+        :example:
+        >>> Color.Print(Color.ColorCode.RED, "Error")
+        """
+        print(f"{color.value}{text}{Color.ColorCode.end_.value}")
+
+def TimeIt(method):
+    """
+    Decorator to time a function
+
+    :example:
+    >>> @timeit
+    >>> def function():
+    >>>     pass
+    """
+    def timed(*args, **kw):
+        ts = time()
+        result = method(*args, **kw)
+        te = time()
+        Color.Print(Color.ColorCode.cyan_, f'{method.__name__} : {te - ts} seconds')
+        return result
+    return timed
 
 # Size, Point, Rect classes
 """

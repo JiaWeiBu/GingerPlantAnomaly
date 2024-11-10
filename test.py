@@ -1,12 +1,12 @@
 
 from pandas import DataFrame
-from classes.pycaret_lib import PyCaretModelType, PyCaretModelUnit # type: ignore
-from classes.dataset_lib import DatasetUnit, MVTecDataset, MVTecDatasetType
+from classes.pycaret_lib import PyCaretModelUnit # type: ignore
+from classes.dataset_lib import DatasetUnit, ImageUnit
 from classes.util_lib import Size, Unused
 
 DATASET_PATH = "./datasets"
 
-def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, size: Size[int], config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
+def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, size: Size[int], config : bool = False, colour_mode : ImageUnit.ColorModeEnum = ImageUnit.ColorModeEnum.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
     if config:
         print("Loading Data")
 
@@ -35,7 +35,7 @@ def LoadData(*, train_path: str, test_good_path: str, test_defective_path: str, 
 
     return train, test_good, test_defective
 
-def LoadMVTecData(*, dataset_type: MVTecDatasetType, size: Size[int], config : bool = False, colour_mode : ColorMode = ColorMode.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
+def LoadMVTecData(*, dataset_type: DataFrame.MVTecDatasetTypeEnum, size: Size[int], config : bool = False, colour_mode : ImageUnit.ColorModeEnum = ImageUnit.ColorModeEnum.grayscale_) -> tuple[DataFrame, DataFrame, DataFrame]:
     if config:
         print("Loading Data")
 
@@ -46,7 +46,7 @@ def LoadMVTecData(*, dataset_type: MVTecDatasetType, size: Size[int], config : b
     test_good_module.LoadImagesResize(f"{DATASET_PATH}/{dataset_type.value}/test/good", colour_mode, size)
 
     test_defective_module = DatasetUnit()
-    for anomaly in MVTecDataset[dataset_type]:
+    for anomaly in DatasetUnit.MVTecDataset[dataset_type]:
         test_defective_module.LoadImagesResize(f"{DATASET_PATH}/{dataset_type.value}/test/{anomaly.value}", colour_mode, size)
 
     train = DataFrame(train_module.images_)
@@ -62,7 +62,7 @@ def LoadMVTecData(*, dataset_type: MVTecDatasetType, size: Size[int], config : b
 
     return train, test_good, test_defective
 
-def PycaretTrainTestSequence(*,model : PyCaretModelUnit, train : DataFrame, test_good : DataFrame, test_defective : DataFrame, dataset_type : MVTecDatasetType, model_type : PyCaretModelType, size : str) -> None:
+def PycaretTrainTestSequence(*,model : PyCaretModelUnit, train : DataFrame, test_good : DataFrame, test_defective : DataFrame, dataset_type : DatasetUnit.MVTecDatasetTypeEnum, model_type : PyCaretModelUnit.PyCaretModelTypeEnum, size : str) -> None:
     model.Train(data=train, model_type=model_type)
     #model.Evaluate()
     #model.Plot(PlotType.tsne_)
@@ -84,7 +84,7 @@ def main():
     image_size : Size[int] = Size[int](64, 64)
 
     #Load Data from each MVTec Dataset Type
-    for dataset_type in MVTecDatasetType:
+    for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
         with open('./results/result.csv', 'a', encoding='utf-8') as f:
             f.write(f"\nType: {dataset_type}\n")
         
@@ -93,9 +93,9 @@ def main():
 
     
         print("Training Models")
-        total_model = len(PyCaretModelType)
+        total_model = len(PyCaretModelUnit.PyCaretModelTypeEnum)
         count = 1
-        for model_type in PyCaretModelType:
+        for model_type in PyCaretModelUnit.PyCaretModelTypeEnum:
             try:
                 print(f"Training {dataset_type.value} on {model_type.value} model {count}/{total_model}")
                 model = PyCaretModelUnit()

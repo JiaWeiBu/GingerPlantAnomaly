@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from typing import Optional, Final
+from typing import Optional, Final, Any
 from pandas import DataFrame
 
 from anomalib.models.components import AnomalyModule
@@ -7,13 +7,13 @@ from anomalib.models import AiVad, Cfa, Cflow, Csflow, Draem, Dfkde, Dfm, Dsr, E
 from anomalib.engine import Engine
 from anomalib import TaskType, LearningType
 from anomalib.loggers import AnomalibCometLogger, AnomalibMLFlowLogger, AnomalibTensorBoardLogger, AnomalibWandbLogger
+from anomalib.models.components.classification import FeatureScalingMethod
+from anomalib.models.image.reverse_distillation.anomaly_map import AnomalyMapGenerationMode
+from anomalib.utils.normalization import NormalizationMethod
+from anomalib.data.image.folder import Folder
+from anomalib.deploy import ExportType
 
-from torch.utils.data import DataLoader, TensorDataset
-from torch import tensor, float32, Tensor, device
-from torch.cuda import is_available
-from optuna import Trial, create_study, Study
-
-from classes.util_lib import Deprecated
+from classes.util_lib import Deprecated, TimeIt
 
 class AnomalyModelUnit: 
     """
@@ -115,6 +115,78 @@ class AnomalyModelUnit:
         AnomalyModelTypeEnum.win_clip_ : False
     }
 
+    MODELS_PARAMS_DICT: Final[dict[AnomalyModelTypeEnum, dict[str, Any]]] = {
+        AnomalyModelTypeEnum.ai_vad_ : {},
+        AnomalyModelTypeEnum.cfa_ : {},
+        AnomalyModelTypeEnum.cflow_ : {},
+        AnomalyModelTypeEnum.csflow_ : {},
+        AnomalyModelTypeEnum.draem_ : {
+            "enable_sspcab" : False,
+            "sspcab_lambda" : 0.1,
+            "anomaly_source_path" : None,
+            "beta" : (0.1, 1.0)
+        },
+        AnomalyModelTypeEnum.dfkde_ : {
+            "backbone" : "resnet18",
+            "layers" : ('layer4',),
+            "pre_trained" : True,
+            "n_pca_components" : 16,
+            "feature_scaling_method" : FeatureScalingMethod.SCALE,
+            "max_training_points" : 40000
+        },
+        AnomalyModelTypeEnum.dfm_ : {},
+        AnomalyModelTypeEnum.dsr_ : {},
+        AnomalyModelTypeEnum.efficient_ad_ : {},
+        AnomalyModelTypeEnum.fastflow_ : {
+            "backbone" : "resnet18",
+            "pre_trained" : True,
+            "flow_steps" : 8,
+            "conv3x3_only" : False,
+            "hidden_ratio" : 1.0
+        },
+        AnomalyModelTypeEnum.fre_ : {},
+        AnomalyModelTypeEnum.ganomaly_ : {
+            "batch_size" : 32,
+            "n_features" : 64,
+            "latent_vec_size" : 100,
+            "extra_layers" : 0,
+            "add_final_conv_layer" : True,
+            "wadv" : 1,
+            "wcon" : 50,
+            "wenc" : 1,
+            "lr" : 0.0002,
+            "beta1" : 0.5,
+            "beta2" : 0.999
+        },
+        AnomalyModelTypeEnum.padim_ : {
+            "backbone" : "resnet18",
+            "layers" : ['layer1', 'layer2', 'layer3'],
+            "pre_trained" : True,
+            "n_features" : None
+        },
+        AnomalyModelTypeEnum.patchcore_ : {
+            "backbone" : "wide_resnet50_2",
+            "layers" : ["layer2", "layer3"],
+            "pre_trained" : True,
+            "coreset_sampling_ratio" : 0.1,
+            "num_neighbors" : 9
+        },
+        AnomalyModelTypeEnum.reverse_distillation_ : {
+            "backbone" : "wide_resnet50_2",
+            "layers" : ["layer1", "layer2", "layer3"],
+            "anomaly_map_mode" : AnomalyMapGenerationMode.ADD,
+            "pre_trained" : True
+        },
+        AnomalyModelTypeEnum.rkde_ : {},
+        AnomalyModelTypeEnum.stfpm_ : {
+            "backbone" : "resnet18",
+            "layers" : ["layer1", "layer2", "layer3"]
+        },
+        AnomalyModelTypeEnum.uflow_ : {},
+        AnomalyModelTypeEnum.vlm_ad_ : {},
+        AnomalyModelTypeEnum.win_clip_ : {}
+    }
+
     @unique
     class AnomalibLoggerTypeEnum(Enum):
         """
@@ -161,79 +233,126 @@ class AnomalyModelUnit:
         few_shot_ = LearningType.FEW_SHOT
 
 
-    def __init__(self, *, model_type : Optional[AnomalyModelTypeEnum] = None, batch_size : Optional[int] = None, epochs : Optional[int] = None, learning_rate : Optional[float] = None, threshold : Optional[float] = None) -> None:
+    def __init__(self, *, model_type : Optional[AnomalyModelTypeEnum] = None, image_metrics : list[str] = ["AUROC"], task : AnomalibTaskTypeEnum = AnomalibTaskTypeEnum.classification_) -> None:
         """
         Initialize the model.
 
         Args:
-            model : (Optional[AnomalyModule]) : Model for anomaly detection. Default is None.
-            batch_size : (Optional[int]) : Batch size for training. Default is None.
-            epochs : (Optional[int]) : Number of epochs for training. Default is None.
-            learning_rate : (Optional[float]) : Learning rate for training. Default is None.
-            threshold : (Optional[float]) : Threshold for anomaly detection. Default is None.
+            model_type : (Optional[AnomalyModelTypeEnum]) : Model for anomaly detection. Default is None.
+            image_metrics : (list[str]) : Image metrics for anomaly detection. Default is ["AUROC"].
+            task : (AnomalibTaskTypeEnum) : Task for anomaly detection. Default is AnomalibTaskTypeEnum.classification_.
         """
         self.model_ : Optional[AnomalyModule] = None
         self.engine_ : Optional[Engine] = None
         self.model_type_ : Optional[AnomalyModelUnit.AnomalyModelTypeEnum] = model_type
-        self.batch_size_ : Optional[int] = batch_size
-        self.epochs_ : Optional[int] = epochs
-        self.learning_rate_ : Optional[float] = learning_rate
-        self.threshold_ : Optional[float] = threshold
+        self.image_metrics_ : list[str] = image_metrics
+        self.task_ : Optional[AnomalyModelUnit.AnomalibTaskTypeEnum] = task
 
-    def Setter(self, *, model_type : Optional[AnomalyModelTypeEnum] = None, batch_size : Optional[int] = None, epochs : Optional[int] = None, learning_rate : Optional[float] = None, threshold : Optional[float] = None) -> None:
+    def Setter(self, *, model_type : Optional[AnomalyModelTypeEnum] = None, image_metrics : list[str] = ["AUROC"], task : AnomalibTaskTypeEnum = AnomalibTaskTypeEnum.classification_) -> None:
         """
         Set the model parameters.
 
         Args:
-            model : (Optional[AnomalyModule]) : Model for anomaly detection. Default is None.
-            batch_size : (Optional[int]) : Batch size for training. Default is None.
-            epochs : (Optional[int]) : Number of epochs for training. Default is None.
-            learning_rate : (Optional[float]) : Learning rate for training. Default is None.
-            threshold : (Optional[float]) : Threshold for anomaly detection. Default is None.
+            model_type : (Optional[AnomalyModelTypeEnum]) : Model for anomaly detection. Default is None.
+            image_metrics : (list[str]) : Image metrics for anomaly detection. Default is ["AUROC"].
+            task : (AnomalibTaskTypeEnum) : Task for anomaly detection. Default is AnomalibTaskTypeEnum.classification_.
 
-        :example:
+        Example:
         >>> model = AnomalyModelUnit()
-        >>> model.Setter(model=AnomalyModelType.ganomaly_, batch_size=32, epochs=100, learning_rate=0.001, threshold=0.5)
+        >>> model.Setter(model_type=AnomalyModelType.ganomaly_)
         """
-        if model_type is not None:
-            self.model_type_ = model_type
-        if batch_size is not None:
-            self.batch_size_ = batch_size
-        if epochs is not None:
-            self.epochs_ = epochs
-        if learning_rate is not None:
-            self.learning_rate_ = learning_rate
-        if threshold is not None:
-            self.threshold_ = threshold
+        self.model_type_ = model_type
+        self.image_metrics_ = image_metrics
+        self.task_ = task
 
-    def ClassValidation(self) -> None:
-        """
-        Validate the class parameters.
-
-        :example:
-        >>> model = AnomalyModelUnit()
-        >>> model.Setter(model=AnomalyModelType.ganomaly_, batch_size=32, epochs=100, learning_rate=0.001, threshold=0.5)
-        >>> model.ClassValidation() # No assertion error
-        """
-        assert self.model_type_ is not None, "Model must be set"
-        assert self.batch_size_ is not None, "Batch Size must be set"
-        assert self.epochs_ is not None, "Epochs must be set"
-        assert self.learning_rate_ is not None, "Learning Rate must be set"
-        assert self.threshold_ is not None, "Threshold must be set"
-
-    def Train(self, *, dataset : DataFrame, logger : AnomalibLoggerTypeEnum, task_type : AnomalibTaskTypeEnum) -> None:
+    @TimeIt
+    def Train(self, datamodule : Folder) -> None:
         # This function will implement the training of the model for any model type 
         """
         TODO: Write this later
         """
+        assert isinstance(self.model_type_, AnomalyModelUnit.AnomalyModelTypeEnum), "Model type is not valid."
+        assert isinstance(self.image_metrics_, list), "Image metrics is not valid."
+        assert isinstance(self.task_, AnomalyModelUnit.AnomalibTaskTypeEnum), "Task is not valid."
+
+        if not self.ModelValid(model_type=self.model_type_):
+            raise ValueError("Model is not implemented.")
         
-        self.ClassValidation()
-        assert self.model_type_ is not None, "Typechecking failed"
+        self.model_ = self.model_type_.value(**self.MODELS_PARAMS_DICT[self.model_type_])
 
-        self.model_ = self.model_type_.value()
-        assert isinstance(self.model_, self.model_type_.value), "Model is not of the correct type"
+        assert isinstance(self.model_, self.model_type_.value), "Model is not valid."
 
-        print(self.model_.learning_type) # This should print the learning type of the model
+        self.engine_ = Engine(
+            normalization=NormalizationMethod.MIN_MAX, # NormalizationMethod.NONE
+            threshold="F1AdaptiveThreshold",
+            task=self.task_.value,
+            image_metrics=self.image_metrics_
+        )
+        self.engine_.fit(model=self.model_, datamodule=datamodule)
+
+    def Evaluate(self, datamodule : Folder):
+        """
+        Evaluate the model.
+
+        Args:
+            datamodule : Folder : Dataset for evaluation.
+        
+        Example:
+        >>> model = AnomalyModelUnit()
+        >>> model.Evaluate(datamodule=datamodule)
+        """
+        assert isinstance(self.model_, AnomalyModule), "Model is not valid."
+        assert isinstance(self.engine_, Engine), "Engine is not valid."
+
+        test_result = self.engine_.test(model=self.model_, datamodule=datamodule)
+        return test_result
+
+    def Predict(self, data : Folder) -> Any:
+        """
+        Predict anomalies in the dataset.
+
+        Args:
+            data : DataFrame : Dataset for predicting anomalies.
+        
+        Returns:
+            DataFrame : Predicted anomalies in the dataset.
+        
+        Example:
+        >>> model = AnomalyModelUnit()
+        >>> model.Predict(data=test)
+        """
+        assert isinstance(self.model_, AnomalyModule), "Model is not valid."
+        assert isinstance(self.engine_, Engine), "Engine is not valid."
+        return self.engine_.predict(model=self.model_, datamodule=data)
+    
+    def Save(self, path : str) -> None:
+        """
+        Save the model.
+
+        Example:
+        >>> model = AnomalyModelUnit()
+        >>> model.Save()
+        """
+        assert isinstance(self.model_, AnomalyModule), "Model is not valid."
+        assert isinstance(self.engine_, Engine), "Engine is not valid."
+        self.engine_.export(model=self.model_, export_type=ExportType.TORCH, export_root=path)
+
+
+    def ModelValid(self, *, model_type : AnomalyModelTypeEnum) -> bool:
+        """
+        Check if the model is valid.
+
+        Args:
+            model_type : (AnomalyModelTypeEnum) : Model for anomaly detection.
+
+        Returns:
+            bool : True if the model is valid, False otherwise.
+
+        Example:
+        >>> model = AnomalyModelUnit()
+        >>> model.ModelValid(model_type=AnomalyModelType.ganomaly_)
+        """
+        return self.VALID_MODELS_DICT[model_type]
 
 
 

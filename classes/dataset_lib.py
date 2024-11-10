@@ -1,9 +1,11 @@
-from typing import Final
+from typing import Final, Optional
 from enum import Enum, unique
 from os import listdir, makedirs
 from os.path import isfile, join, exists, dirname
 from cv2 import imread, imshow, waitKey, destroyAllWindows, imwrite, cvtColor, resize, IMREAD_COLOR, IMREAD_GRAYSCALE, INTER_NEAREST, INTER_LINEAR, INTER_CUBIC, INTER_LANCZOS4, COLOR_RGB2GRAY, COLOR_GRAY2RGB
 from numpy import ndarray
+from anomalib.data.image.folder import Folder
+from anomalib import TaskType
 
 from classes.util_lib import Size, Rect 
 
@@ -425,6 +427,7 @@ class DatasetUnit:
         self.image_unit_ : ImageUnit = ImageUnit()
         self.images_ : list[ndarray] = []
         self.images_name_ : list[str] = []
+        self.folder_ : Optional[Folder] = None
 
     def ClearDataset(self) -> None:
         """
@@ -511,3 +514,53 @@ class DatasetUnit:
             self.images_name_ = dir_images
 
         print(f"Loaded {len(dir_images)} images from {paths}")
+
+    
+    def AnomalibLoadFolder(self, *,root_path : str, normal_path : list[str], abnormal_path : Optional[list[str]], normal_test_split_ratio : float, datalib_name : str, size : Size, task : TaskType) -> None:
+        """
+        Load images from a specified directory, resize them to a specified size, and store them in the dataset.
+        
+        Args:
+            root_path (str): Path to the root directory.
+            normal_path (list[str]): List of paths to the normal images.
+            abnormal_path (list[str]): List of paths to the abnormal images.
+            normal_test_split_ratio (float): Ratio of normal images to be used for testing.
+            datalib_name (str): Name of the dataset.
+            size (Size): Size to resize the images.
+            task (TaskType): Task type of the dataset.
+        
+        :example:
+        >>> dataset_unit : DatasetUnit = DatasetUnit()
+        >>> dataset_unit.AnomalibLoadFolder(
+        >>>     root_path="datasets/bottle",
+        >>>     normal_path=["train/good"],
+        >>>     abnormal_path=["test/broken_large", "test/broken_small", "test/contamination"],
+        >>>     normal_test_split_ratio=0.2,
+        >>>     datalib_name="bottle",
+        >>>     size=Size(64, 64),
+        >>>     task=TaskType.CLASSIFICATION
+        >>> )
+        """
+        self.folder_ = Folder(
+            name=datalib_name,
+            root=root_path,
+            normal_dir=normal_path,
+            abnormal_dir=abnormal_path,
+            normal_split_ratio=normal_test_split_ratio,
+            image_size=(size.width_, size.height_),
+            train_batch_size=32,
+            eval_batch_size=32,
+            num_workers=8,
+            task=task
+        )
+        self.folder_.setup()
+
+    def AnomalibDatasetValidation(self) -> None:
+        """
+        Validate the dataset.
+
+        :example:
+        >>> dataset_unit : DatasetUnit = DatasetUnit()
+        >>> dataset_unit.AnomalibDatasetValidation() # Output: Folder not initialized
+        """
+        assert isinstance(self.folder_, Folder), "Folder not initialized"
