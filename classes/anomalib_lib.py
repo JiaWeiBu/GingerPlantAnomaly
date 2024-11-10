@@ -23,24 +23,34 @@ class AnomalyModelUnit:
     Enum:
         AnomalyModelTypeEnum : Enum for different types of anomaly detection models.
         AnomalibLoggerTypeEnum : Enum for different types of logger for anomaly detection models.
+        AnomalibTaskTypeEnum : Enum for different types of task for anomaly detection models.
+        AnomalibLearningTypeEnum : Enum for different types of learning for anomaly detection models
     
     Dictionary:
-        VALID_MODELS_DICT : Dictionary for valid models.
+        VALID_MODELS_DICT : Dict[AnomalyModelTypeEnum, bool] : Dictionary for valid models.
+        MODELS_PARAMS_DICT : Dict[AnomalyModelTypeEnum, Dict[str, Any]] : Dictionary for model parameters.
 
     Attributes:
-        model_ : AnomalyModule | None : Model for anomaly detection.
-        batch_size_ : int | None : Batch size for training.
-        epochs_ : int | None : Number of epochs for training.
-        learning_rate_ : float | None : Learning rate for training.
-        threshold_ : float | None : Threshold for anomaly detection.
+        model_ : Optional[AnomalyModule] : Internal Anomalib model.
+        engine_ : Optional[Engine] : Internal Anomalib engine.
+        model_type_ : Optional[AnomalyModelTypeEnum] : Model for anomaly detection.
+        image_metrics_ : list[str] : Image metrics for anomaly detection.
+        task_ : Optional[AnomalibTaskTypeEnum] : Task for anomaly detection
 
     Methods:
         Setter : Set the model parameters.
-        ClassValidation : Validate the class parameters.
         Train : Train the model using the dataset.
+        Evaluate : Evaluate the model.
+        Predict : Predict anomalies in the dataset.
+        Save : Save the model.
+        ModelValid : Check if the model is valid.
 
-    :example:
-    >>> model = AnomalyModelUnit(model=AnomalyModelType.ganomaly_, batch_size=32, epochs=100, learning_rate=0.001, threshold=0.5)
+    Example:
+    >>> model = AnomalyModelUnit()
+    >>> model.Train(datamodule=datamodule)
+    >>> model.Evaluate(datamodule=datamodule)
+    >>> model.Predict(data=test)
+    >>> model.Save(path="model")
     """
 
     @unique
@@ -269,7 +279,14 @@ class AnomalyModelUnit:
     def Train(self, datamodule : Folder) -> None:
         # This function will implement the training of the model for any model type 
         """
-        TODO: Write this later
+        Train the model using the dataset.
+
+        Args:
+            datamodule : Folder : Dataset for training the model.
+        
+        Example:
+        >>> model = AnomalyModelUnit()
+        >>> model.Train(datamodule=datamodule)
         """
         assert isinstance(self.model_type_, AnomalyModelUnit.AnomalyModelTypeEnum), "Model type is not valid."
         assert isinstance(self.image_metrics_, list), "Image metrics is not valid."
@@ -290,6 +307,7 @@ class AnomalyModelUnit:
         )
         self.engine_.fit(model=self.model_, datamodule=datamodule)
 
+    @TimeIt
     def Evaluate(self, datamodule : Folder):
         """
         Evaluate the model.
@@ -307,15 +325,16 @@ class AnomalyModelUnit:
         test_result = self.engine_.test(model=self.model_, datamodule=datamodule)
         return test_result
 
+    @TimeIt
     def Predict(self, data : Folder) -> Any:
         """
         Predict anomalies in the dataset.
 
         Args:
-            data : DataFrame : Dataset for predicting anomalies.
+            data : Folder : Dataset for predicting anomalies.
         
         Returns:
-            DataFrame : Predicted anomalies in the dataset.
+            Any : Predicted anomalies in the dataset.
         
         Example:
         >>> model = AnomalyModelUnit()
@@ -328,6 +347,9 @@ class AnomalyModelUnit:
     def Save(self, path : str) -> None:
         """
         Save the model.
+
+        Args:
+            path : str : Path to save the model.
 
         Example:
         >>> model = AnomalyModelUnit()
