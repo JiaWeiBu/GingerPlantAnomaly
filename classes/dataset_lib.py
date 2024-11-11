@@ -439,6 +439,7 @@ class DatasetUnit:
         """
         self.images_ = []
         self.images_name_ = []
+        self.folder_ = None
 
     # Read a directory and get all images in the directory
     def DirImages(self, path: str) -> list[str]:
@@ -551,7 +552,7 @@ class DatasetUnit:
             train_batch_size=32,
             eval_batch_size=32,
             num_workers=8,
-            task=task
+            task=task.value
         )
         self.folder_.setup()
 
