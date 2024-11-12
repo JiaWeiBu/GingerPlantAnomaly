@@ -150,8 +150,25 @@ class ProgressUnit:
             self.progression_matrix_[dataset_type] = {}
             for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
                 self.progression_matrix_[dataset_type][model_type] = False
-            
-            
+
+    def advanced_one(self) -> None:
+        """
+        Advances the progress of the program by one
+
+        Example:
+        >>> progress_unit : ProgressUnit = ProgressUnit()
+        >>> progress_unit.advanced_one()
+        """
+        self.read_progress()
+        check : bool = False
+        for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
+            if check:
+                self.model_type_progress_ = model_type
+                self.write_progress()
+                break
+            if model_type == self.model_type_progress_:
+                check = True
+                
             
 
     

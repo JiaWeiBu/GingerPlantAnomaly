@@ -303,7 +303,7 @@ class AnomalyModelUnit:
         assert isinstance(self.model_, self.model_type_.value), "Model is not valid."
 
         early_stopping_callback = EarlyStopping(
-            monitor="train_loss_epoch",
+            monitor="train_loss_step",
             patience=10,
             mode="min",
             min_delta=0.005,

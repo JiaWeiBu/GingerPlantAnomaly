@@ -2,7 +2,7 @@
 
 from classes.anomalib_lib import AnomalyModelUnit
 from classes.dataset_lib import DatasetUnit, ImageUnit
-from classes.util_lib import Size
+from classes.util_lib import Size, TimeIt
 from classes.progress_lib import ProgressUnit
 
 DATASET_PATH = "./datasets"
@@ -12,6 +12,7 @@ Previous : bool = False
 def AbnormalPathGen(DatasetType : DatasetUnit.MVTecDatasetTypeEnum) -> list[str]:
     return [f"test/{anomaly.value}" for anomaly in DatasetUnit.MVTecDataset[DatasetType]]
 
+@TimeIt
 def main():
     with open("anomalib_results.txt", "w", encoding="utf-8") as f:
         f.write("dataset_type, model_type, AUROC, AUPRO, AUPR\n")
@@ -25,7 +26,7 @@ def main():
         progress_unit.new_progress()
     
     # # Load the data from each dataset type
-    for dataset_type in [DatasetUnit.MVTecDatasetTypeEnum.bottle_]:
+    for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
         # Load the data from the dataset
         dataset_unit : DatasetUnit = DatasetUnit()
         dataset_unit.AnomalibLoadFolder(root_path = f"{DATASET_PATH}/{dataset_type.value}", normal_path=GOOD_PATH, abnormal_path=AbnormalPathGen(dataset_type), normal_test_split_ratio=0.2, datalib_name=dataset_type.value, size=Size(64, 64), task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
@@ -33,7 +34,7 @@ def main():
 
         # Load model for each model type
         for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
-            if progress_unit
+            if progress_unit.progression_matrix_[dataset_type][model_type]:
                 continue
             # Create the model
             try:
@@ -42,8 +43,8 @@ def main():
                 result = anomaly_model.Evaluate(datamodule=dataset_unit.folder_)
 
                 with open("anomalib_results.txt", "a", encoding="utf-8") as f:
-                    f.write(f"{dataset_type.value}, {model_type.value}, {result['image_AUROC']}, {result['image_AUPRO']}, {result['image_AUPR']}\n")
-                    print(f"{dataset_type.value}, {model_type.value}, {result['image_AUROC']}, {result['image_AUPRO']}, {result['image_AUPR']}\n")
+                    f.write(f"{dataset_type.value}, {model_type.value}, {result[0]['image_AUROC']}, {result[0]['image_AUPRO']}, {result[0]['image_AUPR']}\n")
+                    print(f"{dataset_type.value}, {model_type.value}, {result[0]['image_AUROC']}, {result[0]['image_AUPRO']}, {result[0]['image_AUPR']}\n")
                     print("result added")
                 
                 progress_unit.update_progress(dataset_type, model_type)
