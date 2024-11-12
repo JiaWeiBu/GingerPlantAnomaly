@@ -278,7 +278,7 @@ class AnomalyModelUnit:
         self.image_metrics_ = image_metrics
         self.task_ = task
 
-    @TimeIt
+    #@TimeIt
     def Train(self, datamodule : Folder) -> None:
         # This function will implement the training of the model for any model type 
         """
@@ -303,10 +303,10 @@ class AnomalyModelUnit:
         assert isinstance(self.model_, self.model_type_.value), "Model is not valid."
 
         early_stopping_callback = EarlyStopping(
-            monitor="train_loss_step",
+            monitor="generator_loss_step" if self.model_type_ == AnomalyModelUnit.AnomalyModelTypeEnum.ganomaly_ else "train_loss_step",
             patience=10,
             mode="min",
-            min_delta=0.005,
+            min_delta=0.01,
             verbose=True,
         )
 
@@ -315,14 +315,14 @@ class AnomalyModelUnit:
             threshold="F1AdaptiveThreshold",
             task=self.task_.value,
             image_metrics=self.image_metrics_,
-            max_epochs=1,
-            callbacks=[early_stopping_callback],
+            max_epochs=50,
+            callbacks=[] if self.model_type_ in [AnomalyModelUnit.AnomalyModelTypeEnum.dfkde_, AnomalyModelUnit.AnomalyModelTypeEnum.padim_, AnomalyModelUnit.AnomalyModelTypeEnum.patchcore_] else [early_stopping_callback],
             accelerator="auto",
             devices="auto",
         )
         self.engine_.fit(model=self.model_, datamodule=datamodule)
 
-    @TimeIt
+    #@TimeIt
     def Evaluate(self, datamodule : Folder):
         """
         Evaluate the model.
@@ -340,7 +340,7 @@ class AnomalyModelUnit:
         test_result = self.engine_.test(model=self.model_, datamodule=datamodule)
         return test_result
 
-    @TimeIt
+    #@TimeIt
     def Predict(self, data : Folder) -> Any:
         """
         Predict anomalies in the dataset.

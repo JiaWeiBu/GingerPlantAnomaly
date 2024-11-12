@@ -1,10 +1,9 @@
-
-
 from classes.anomalib_lib import AnomalyModelUnit
 from classes.dataset_lib import DatasetUnit, ImageUnit
 from classes.util_lib import Size, TimeIt
 from classes.progress_lib import ProgressUnit
 from time import time
+from os import path
 
 DATASET_PATH = "./datasets"
 GOOD_PATH = ["train/good", "test/good"]
@@ -13,7 +12,7 @@ Previous : bool = False
 def AbnormalPathGen(DatasetType : DatasetUnit.MVTecDatasetTypeEnum) -> list[str]:
     return [f"test/{anomaly.value}" for anomaly in DatasetUnit.MVTecDataset[DatasetType]]
 
-@TimeIt
+#@TimeIt
 def main():
     with open("anomalib_results.txt", "w", encoding="utf-8") as f:
         f.write("dataset_type, model_type, AUROC, AUPR, Time\n")
@@ -27,8 +26,8 @@ def main():
         progress_unit.new_progress()
     
     # # Load the data from each dataset type
-    #for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
-    for dataset_type in [DatasetUnit.MVTecDatasetTypeEnum.bottle_]:
+    for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
+    #for dataset_type in [DatasetUnit.MVTecDatasetTypeEnum.bottle_]:
         # Load the data from the dataset
         dataset_unit : DatasetUnit = DatasetUnit()
         dataset_unit.AnomalibLoadFolder(root_path = f"{DATASET_PATH}/{dataset_type.value}", normal_path=GOOD_PATH, abnormal_path=AbnormalPathGen(dataset_type), normal_test_split_ratio=0.2, datalib_name=dataset_type.value, size=Size(64, 64), task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
@@ -40,7 +39,7 @@ def main():
                 continue
             # Create the model
             try:
-                start = time()
+                start : float = time()
                 anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC", "AUPR"])
                 anomaly_model.Train(datamodule=dataset_unit.folder_)
                 result = anomaly_model.Evaluate(datamodule=dataset_unit.folder_)
@@ -51,7 +50,14 @@ def main():
                 
                 progress_unit.update_progress(dataset_type, model_type)
 
-                anomaly_model.Save("models")
+                # save model in models/data_type/model_type
+                # check if the directory exists
+                # if not create it
+                if not path.exists(f"models/{dataset_type.value}"):
+                    path.mkdir(f"models/{dataset_type.value}")
+                if not path.exists(f"models/{dataset_type.value}/{model_type.value}"):
+                    path.mkdir(f"models/{dataset_type.value}/{model_type.value}")
+                anomaly_model.Save(f"models/{dataset_type.value}/{model_type.value}")
 
             except Exception as e:
                 with open("anomalib_log.log", "a", encoding="utf-8") as f:
