@@ -3,7 +3,7 @@ from classes.dataset_lib import DatasetUnit, ImageUnit
 from classes.util_lib import Size, TimeIt
 from classes.progress_lib import ProgressUnit
 from time import time
-from os import path
+from os.path import exists, makedirs
 
 DATASET_PATH = "./datasets"
 GOOD_PATH = ["train/good", "test/good"]
@@ -53,10 +53,10 @@ def main():
                 # save model in models/data_type/model_type
                 # check if the directory exists
                 # if not create it
-                if not path.exists(f"models/{dataset_type.value}"):
-                    path.mkdir(f"models/{dataset_type.value}")
-                if not path.exists(f"models/{dataset_type.value}/{model_type.value}"):
-                    path.mkdir(f"models/{dataset_type.value}/{model_type.value}")
+                if not exists(f"models/{dataset_type.value}"):
+                    makedirs(f"models/{dataset_type.value}")
+                if not exists(f"models/{dataset_type.value}/{model_type.value}"):
+                    makedirs(f"models/{dataset_type.value}/{model_type.value}")
                 anomaly_model.Save(f"models/{dataset_type.value}/{model_type.value}")
 
             except Exception as e:
