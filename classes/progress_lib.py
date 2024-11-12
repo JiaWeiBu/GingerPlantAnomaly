@@ -5,6 +5,31 @@ from classes.anomalib_lib import AnomalyModelUnit
 from classes.dataset_lib import DatasetUnit
 
 class ProgressUnit:
+    """
+    ProgressUnit class is used to keep track of the progress of the model and dataset used in the Anomalib project
+
+    Attributes:
+        dataset_type_progress_ : Optional[DatasetUnit.MVTecDatasetTypeEnum] : The dataset type that the program is currently on
+        model_type_progress_ : Optional[AnomalyModelUnit.AnomalyModelTypeEnum] : The model type that the program is currently on
+        file_path_ : str : The file path to the progress file
+        dataset_dict_ : dict[str, DatasetUnit.MVTecDatasetTypeEnum] : The dictionary of the dataset type enum
+        model_dict_ : dict[str, AnomalyModelUnit.AnomalyModelTypeEnum] : The dictionary of the model type enum
+        progression_matrix_ : dict[DatasetUnit.MVTecDatasetTypeEnum, dict[AnomalyModelUnit.AnomalyModelTypeEnum, bool]] : The matrix of the progress of the program
+    
+    Methods:
+        write_progress : None : Writes the current progress to the progress file
+        update_progress : None : Updates the current progress of the program
+        read_progress : None : Reads the progress from the progress file
+        matrix_gen : None : Generates the matrix of the progress
+        new_progress : None : Resets the progress of the program
+    
+    Example:
+    >>> progress_unit : ProgressUnit = ProgressUnit()
+    >>> progress_unit.read_progress()
+    >>> progress_unit.update_progress(DatasetUnit.MVTecDatasetTypeEnum.bottle_, AnomalyModelUnit.AnomalyModelTypeEnum.padim_)
+    >>> progress_unit.write_progress()
+    """
+
     def __init__(self, dataset_type_progress : Optional[DatasetUnit.MVTecDatasetTypeEnum] = None, model_type_progress : Optional[AnomalyModelUnit.AnomalyModelTypeEnum] = None):
         self.dataset_type_progress_ : Optional[DatasetUnit.MVTecDatasetTypeEnum] = dataset_type_progress
         self.model_type_progress_ : Optional[AnomalyModelUnit.AnomalyModelTypeEnum] = model_type_progress
@@ -51,6 +76,13 @@ class ProgressUnit:
         self.progression_matrix_ : dict[DatasetUnit.MVTecDatasetTypeEnum, dict[AnomalyModelUnit.AnomalyModelTypeEnum, bool]] = {}
 
     def write_progress(self) -> None:
+        """
+        Writes the current progress to the progress file
+
+        Example:
+        >>> progress_unit : ProgressUnit = ProgressUnit()
+        >>> progress_unit.write_progress()
+        """
         assert isinstance(self.dataset_type_progress_, DatasetUnit.MVTecDatasetTypeEnum)
         assert isinstance(self.model_type_progress_, AnomalyModelUnit.AnomalyModelTypeEnum)
         with open(self.file_path_, "w", encoding="utf-8") as f:
@@ -58,18 +90,44 @@ class ProgressUnit:
             f.write(f"{self.model_type_progress_.name}\n")
 
     def update_progress(self, dataset_type : DatasetUnit.MVTecDatasetTypeEnum, model_type : AnomalyModelUnit.AnomalyModelTypeEnum) -> None:
+        """
+        Updates the current progress of the program
+
+        Args:
+            dataset_type : DatasetUnit.MVTecDatasetTypeEnum : The dataset type to update the progress to
+            model_type : AnomalyModelUnit.AnomalyModelTypeEnum : The model type to update the progress to
+        
+        Example:
+        >>> progress_unit : ProgressUnit = ProgressUnit()
+        >>> progress_unit.update_progress(DatasetUnit.MVTecDatasetTypeEnum.bottle_, AnomalyModelUnit.AnomalyModelTypeEnum.padim_)
+        """
         self.dataset_type_progress_ = dataset_type
         self.model_type_progress_ = model_type
         self.write_progress()
     
     def read_progress(self) -> None:
+        """
+        Reads the progress from the progress file
+
+        Example:
+        >>> progress_unit : ProgressUnit = ProgressUnit()
+        >>> progress_unit.read_progress()
+        """
         with open(self.file_path_, "r", encoding="utf-8") as f:
             dataset_type = f.readline().strip()
             model_type = f.readline().strip()
             self.dataset_type_progress_ = self.dataset_dict_[dataset_type]
-            self.model_type_progress_ = self.model_dict_[model_type] 
+            self.model_type_progress_ = self.model_dict_[model_type]
+            self.matrix_gen()
 
     def matrix_gen(self) -> None:
+        """
+        Generates the matrix of the progress
+
+        Example:
+        >>> progress_unit : ProgressUnit = ProgressUnit()
+        >>> progress_unit.matrix_gen()
+        """
         run : bool = True
         for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
             self.progression_matrix_[dataset_type] = {}
@@ -79,6 +137,13 @@ class ProgressUnit:
                     run = False
 
     def new_progress(self) -> None:
+        """
+        Resets the progress of the program
+
+        Example:
+        >>> progress_unit : ProgressUnit = ProgressUnit()
+        >>> progress_unit.new_progress()
+        """
         with open(self.file_path_, "w", encoding="utf-8") as f:
             ...
         for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:

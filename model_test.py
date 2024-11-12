@@ -13,9 +13,9 @@ def AbnormalPathGen(DatasetType : DatasetUnit.MVTecDatasetTypeEnum) -> list[str]
     return [f"test/{anomaly.value}" for anomaly in DatasetUnit.MVTecDataset[DatasetType]]
 
 def main():
-    with open("anomalib_results.txt", "w") as f:
+    with open("anomalib_results.txt", "w", encoding="utf-8") as f:
         f.write("dataset_type, model_type, AUROC, AUPRO, AUPR\n")
-    with open("anomalib_log.log", "w") as f:
+    with open("anomalib_log.log", "w", encoding="utf-8") as f:
         f.write("Log File\n")
 
     progress_unit : ProgressUnit = ProgressUnit()
@@ -33,13 +33,15 @@ def main():
 
         # Load model for each model type
         for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
+            if progress_unit
+                continue
             # Create the model
             try:
                 anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC","AUPRO", "AUPR"])
                 anomaly_model.Train(datamodule=dataset_unit.folder_)
                 result = anomaly_model.Evaluate(datamodule=dataset_unit.folder_)
 
-                with open("anomalib_results.txt", "a") as f:
+                with open("anomalib_results.txt", "a", encoding="utf-8") as f:
                     f.write(f"{dataset_type.value}, {model_type.value}, {result['image_AUROC']}, {result['image_AUPRO']}, {result['image_AUPR']}\n")
                     print(f"{dataset_type.value}, {model_type.value}, {result['image_AUROC']}, {result['image_AUPRO']}, {result['image_AUPR']}\n")
                     print("result added")
@@ -47,7 +49,7 @@ def main():
                 progress_unit.update_progress(dataset_type, model_type)
 
             except Exception as e:
-                with open("anomalib_log.log", "a") as f:
+                with open("anomalib_log.log", "a", encoding="utf-8") as f:
                     f.write(f"Dataset Type: {dataset_type.value}\nModel Type: {model_type.value}\nError: {e}\n\n")
                 continue
 
