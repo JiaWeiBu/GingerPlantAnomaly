@@ -3,7 +3,8 @@ from classes.dataset_lib import DatasetUnit, ImageUnit
 from classes.util_lib import Size, TimeIt
 from classes.progress_lib import ProgressUnit
 from time import time
-from os.path import exists, makedirs
+from os.path import exists
+from os import makedirs
 
 DATASET_PATH = "./datasets"
 GOOD_PATH = ["train/good", "test/good"]
