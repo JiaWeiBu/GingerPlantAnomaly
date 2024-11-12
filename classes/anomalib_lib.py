@@ -1,4 +1,5 @@
 from enum import Enum, unique
+
 from typing import Optional, Final, Any
 from pandas import DataFrame
 
@@ -12,6 +13,8 @@ from anomalib.models.image.reverse_distillation.anomaly_map import AnomalyMapGen
 from anomalib.utils.normalization import NormalizationMethod
 from anomalib.data.image.folder import Folder
 from anomalib.deploy import ExportType
+
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
 from classes.util_lib import Deprecated, TimeIt
 
@@ -172,7 +175,7 @@ class AnomalyModelUnit:
             "backbone" : "resnet18",
             "layers" : ['layer1', 'layer2', 'layer3'],
             "pre_trained" : True,
-            "n_features" : None
+            "n_features" : 100
         },
         AnomalyModelTypeEnum.patchcore_ : {
             "backbone" : "wide_resnet50_2",
@@ -299,11 +302,23 @@ class AnomalyModelUnit:
 
         assert isinstance(self.model_, self.model_type_.value), "Model is not valid."
 
+        early_stopping_callback = EarlyStopping(
+            monitor="train_loss_epoch",
+            patience=10,
+            mode="min",
+            min_delta=0.005,
+            verbose=True,
+        )
+
         self.engine_ = Engine(
             normalization=NormalizationMethod.MIN_MAX, # NormalizationMethod.NONE
             threshold="F1AdaptiveThreshold",
             task=self.task_.value,
-            image_metrics=self.image_metrics_
+            image_metrics=self.image_metrics_,
+            max_epochs=1,
+            callbacks=[early_stopping_callback],
+            accelerator="auto",
+            devices="auto",
         )
         self.engine_.fit(model=self.model_, datamodule=datamodule)
 

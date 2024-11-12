@@ -551,7 +551,7 @@ class DatasetUnit:
             image_size=(size.width_, size.height_),
             train_batch_size=32,
             eval_batch_size=32,
-            num_workers=8,
+            num_workers=2,
             task=task.value
         )
         self.folder_.setup()
