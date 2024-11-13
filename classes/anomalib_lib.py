@@ -304,7 +304,7 @@ class AnomalyModelUnit:
 
         early_stopping_callback = EarlyStopping(
             monitor="generator_loss_step" if self.model_type_ == AnomalyModelUnit.AnomalyModelTypeEnum.ganomaly_ else "train_loss_step",
-            patience=10,
+            patience=3,
             mode="min",
             min_delta=0.02,
             verbose=True,
