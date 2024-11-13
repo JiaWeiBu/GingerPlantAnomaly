@@ -30,9 +30,11 @@ def main():
     for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
     #for dataset_type in [DatasetUnit.MVTecDatasetTypeEnum.bottle_]:
         # Load the data from the dataset
+        print(f"Loading {dataset_type.value}")
         dataset_unit : DatasetUnit = DatasetUnit()
         dataset_unit.AnomalibLoadFolder(root_path = f"{DATASET_PATH}/{dataset_type.value}", normal_path=GOOD_PATH, abnormal_path=AbnormalPathGen(dataset_type), normal_test_split_ratio=0.2, datalib_name=dataset_type.value, size=Size(64, 64), task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
         dataset_unit.AnomalibDatasetValidation()
+        print(f"Loaded {dataset_type.value}")
 
         # Load model for each model type
         for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
@@ -41,6 +43,7 @@ def main():
             # Create the model
             try:
                 start : float = time()
+                print(f"Training {dataset_type.value} with {model_type.name}")
                 anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC", "AUPR"])
                 anomaly_model.Train(datamodule=dataset_unit.folder_)
                 result = anomaly_model.Evaluate(datamodule=dataset_unit.folder_)
@@ -56,9 +59,9 @@ def main():
                 # if not create it
                 if not exists(f"models/{dataset_type.value}"):
                     makedirs(f"models/{dataset_type.value}")
-                if not exists(f"models/{dataset_type.value}/{model_type.value}"):
-                    makedirs(f"models/{dataset_type.value}/{model_type.value}")
-                anomaly_model.Save(f"models/{dataset_type.value}/{model_type.value}")
+                if not exists(f"models/{dataset_type.value}/{model_type.name}"):
+                    makedirs(f"models/{dataset_type.value}/{model_type.name}")
+                anomaly_model.Save(f"models/{dataset_type.value}/{model_type.name}")
 
             except Exception as e:
                 with open("anomalib_log.log", "a", encoding="utf-8") as f:
