@@ -1,79 +1,60 @@
-from typing import Optional
-from anomalib.data.image.folder import Folder
-from anomalib import TaskType
-from anomalib.models import Draem, AnomalyModule
-from anomalib.models.components.feature_extractors import BackboneParams
-from anomalib.engine import Engine
-from anomalib.utils.normalization import NormalizationMethod
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
+# run testing on all model
+# model location in models/data_type/model_type/weights/torch/model.pt
 
-from classes.util_lib import Color, TimeIt
+from pandas import DataFrame
+from classes.dataset_lib import DatasetUnit, ImageUnit
+from classes.util_lib import Size
+from classes.anomalib_lib import AnomalyModelUnit
+import torch
 
-@TimeIt
-def read_image(*, normal : list[str], abnormal : Optional[list[str]], ratio : float , name : str) -> Folder:
-    datamodule = Folder(
-        name=name,
-        root="datasets/bottle",
-        normal_dir=normal,
-        abnormal_dir=abnormal,
-        normal_split_ratio=ratio,
-        image_size=(64, 64),
-        train_batch_size=32,
-        eval_batch_size=32,
-        num_workers=2,
-        task=TaskType.CLASSIFICATION    
-    )
-    datamodule.setup()
-    return datamodule
+DATASET_PATH = "./datasets"
 
-@TimeIt
-def train_model(engine : Engine, model : AnomalyModule, datamodule : Folder):
-    engine.fit(model=model, datamodule=datamodule)
+def LoadMVTecData(*, dataset_type: DataFrame.MVTecDatasetTypeEnum, size: Size[int], config : bool = False, colour_mode : ImageUnit.ColorModeEnum = ImageUnit.ColorModeEnum.grayscale_) -> tuple[DataFrame, DataFrame]:
+    if config:
+        print("Loading Data")
 
-@TimeIt
-def test_model(engine : Engine, model : AnomalyModule, datamodule : Folder):
-    test_result = engine.test(model=model, datamodule=datamodule)
-    return test_result
+    test_good_module = DatasetUnit()
+    test_good_module.LoadImagesResize2D(f"{DATASET_PATH}/{dataset_type.value}/test/good", colour_mode, size)
 
-@TimeIt
+    test_defective_module = DatasetUnit()
+    for anomaly in DatasetUnit.MVTecDataset[dataset_type]:
+        test_defective_module.LoadImagesResize2D(f"{DATASET_PATH}/{dataset_type.value}/test/{anomaly.value}", colour_mode, size)
+
+    test_good = DataFrame(test_good_module.images_)
+    test_defective = DataFrame(test_defective_module.images_)
+
+    print("Test Good Shape: ", test_good.shape)
+    print("Test Defective Shape: ", test_defective.shape)
+
+    if config:
+        print("Data Loaded")
+
+    return test_good, test_defective
+
+
 def main():
-    datamodule = read_image(normal=["train/good","test/good"], abnormal=["test/broken_large", "test/broken_small", "test/contamination"], ratio=0, name="train")
+    anomaly_model_unit = AnomalyModelUnit()
+    for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
+        print(f"Loading {dataset_type.value}")
+        test_good, test_defective = LoadMVTecData(dataset_type=dataset_type, size=Size(64, 64), config=True)
+        print(f"Loaded {dataset_type.value}")
 
-    # model = Padim(
-    #     backbone="resnet18",
-    #     layers=['layer1', 'layer2', 'layer3'],
-    #     pre_trained=True,
-    #     n_features=100,
-    # )
+        for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
+            model = AnomalyModelUnit.PyTorchModelDict[model_type]()
+            model.load_state_dict(torch.load(f"models/{dataset_type.value}/{model_type.name}/weights/torch/model.pt"))
+            model.eval()
+            print(f"Testing {dataset_type.value} with {model_type.name}")
 
-    model = Draem(
-        enable_sspcab=True,
-        sspcab_lambda=0.1,
-        anomaly_source_path=None,
-        beta=(0.1, 1.0)
-    )
+            # Test the model
+            if anomaly_model_unit.ModelValid(model_type=model_type):
+                output_good = model(test_good)
+                output_defective = model(test_defective)
+                print(f"Output Good Shape: {output_good.shape}")
+                print(f"Output Defective Shape: {output_defective.shape}")
+                print (f"Output Good: {output_good}")
+                print (f"Output Defective: {output_defective}")
+
     
-    early_stopping_callback = EarlyStopping(
-        monitor="train_loss_epoch",
-        patience=5,
-        mode="min",
-        verbose=True,
-    )
-
-    engine = Engine(
-        normalization=NormalizationMethod.MIN_MAX,
-        threshold="F1AdaptiveThreshold",
-        task=TaskType.CLASSIFICATION,
-        image_metrics=["AUROC", "AUPR"],
-        max_epochs=100,
-        callbacks=[early_stopping_callback],
-        accelerator="auto",
-        devices="auto",
-        #check_val_every_n_epoch=5,
-    )
-    train_model(engine, model, datamodule)
-
-    test_result = test_model(engine, model, datamodule)
 
 if __name__ == '__main__':
     main()

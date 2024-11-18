@@ -516,6 +516,34 @@ class DatasetUnit:
 
         print(f"Loaded {len(dir_images)} images from {paths}")
 
+    def LoadImagesResize2D(self, paths: str, color_mode: ImageUnit.ColorModeEnum, size: Size) -> None:
+        """
+        Load images from a specified directory, resize them to a specified size, and store them in the dataset.
+        Images are stored as 2D arrays for further processing.
+        Image names are stored for reference.
+
+        Args:
+            paths (str): Path to the directory.
+            color_mode (ColorMode): Color mode of the images.
+            size (Size): Size to resize the images.
+        
+        :example:
+        >>> dataset_unit : DatasetUnit = DatasetUnit()
+        >>> dataset_unit.LoadImagesResize2D("path/to/images", ColorMode.rgb, Size(100, 100))
+        """
+        dir_images : list[str] = self.DirImages(paths)
+        if len(dir_images) == 0:
+            print("No images found in the directory")
+            return
+        if len(self.images_) > 0:
+            self.images_.extend([self.image_unit_.ResizeImage(self.image_unit_.LoadImage(path, color_mode), size) for path in dir_images])
+            self.images_name_.extend(dir_images)
+        else:
+            self.images_ = [self.image_unit_.ResizeImage(self.image_unit_.LoadImage(path, color_mode), size) for path in dir_images]
+            self.images_name_ = dir_images
+
+        print(f"Loaded {len(dir_images)} images from {paths}")
+
     
     def AnomalibLoadFolder(self, *,root_path : str, normal_path : list[str], abnormal_path : Optional[list[str]], normal_test_split_ratio : float, datalib_name : str, size : Size, task : TaskType) -> None:
         """

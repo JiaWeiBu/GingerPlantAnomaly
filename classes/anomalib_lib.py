@@ -14,6 +14,29 @@ from anomalib.utils.normalization import NormalizationMethod
 from anomalib.data.image.folder import Folder
 from anomalib.deploy import ExportType
 
+# import all the torch model for all anomalib model
+from anomalib.models.video.ai_vad.torch_model import AiVadModel
+from anomalib.models.image.cfa.torch_model import CfaModel
+from anomalib.models.image.cflow.torch_model import CflowModel
+from anomalib.models.image.csflow.torch_model import CsFlowModel
+from anomalib.models.image.draem.torch_model import DraemModel
+from anomalib.models.image.dfkde.torch_model import DfkdeModel
+from anomalib.models.image.dfm.torch_model import DFMModel
+from anomalib.models.image.dsr.torch_model import DsrModel
+from anomalib.models.image.efficient_ad.torch_model import EfficientAdModel
+from anomalib.models.image.fastflow.torch_model import FastflowModel
+from anomalib.models.image.fre.torch_model import FREModel
+from anomalib.models.image.ganomaly.torch_model import GanomalyModel
+from anomalib.models.image.padim.torch_model import PadimModel
+from anomalib.models.image.patchcore.torch_model import PatchcoreModel
+from anomalib.models.image.reverse_distillation.torch_model import ReverseDistillationModel
+from anomalib.models.image.rkde.torch_model import RkdeModel
+from anomalib.models.image.stfpm.torch_model import STFPMModel
+from anomalib.models.image.uflow.torch_model import UflowModel
+#from anomalib.models.image.vlm_ad.torch_model import VlmAdModel
+from anomalib.models.image.winclip.torch_model import WinClipModel
+
+
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
 from classes.util_lib import Deprecated, TimeIt
@@ -104,6 +127,76 @@ class AnomalyModelUnit:
         vlm_ad_ = VlmAd
         win_clip_ = WinClip
 
+    # @unique
+    # class AnomalyModelPyTorchModelTypeEnum(Enum):
+    #     """
+    #     Enum for different types of anomaly detection models.
+
+    #     Model from PyTorch
+    #     AI_VAD : AI Video Anomaly Detection
+    #     CFA : Contextual Feature Anomaly
+    #     CFLOW : Contextual Flow Anomaly
+    #     CSFLOW : Contextual Spatial Flow Anomaly
+    #     DRAEM : Deep Recurrent Autoencoder for Extreme Multiclass
+    #     DFKDE : Deep Feature Kernel Density Estimation
+    #     DFM : Deep Feature Matching
+    #     DSR : Deep Spatial Regression
+    #     EFFICIENT_AD : Efficient Anomaly Detection
+    #     FASTFLOW : Fast Flow Anomaly
+    #     FRE : Feature Representation Ensemble
+    #     GANOMALY : GANomaly
+    #     PADIM : Patch-based Anomaly Detection with Image Matching
+    #     PATCHCORE : PatchCore
+    #     REVERSE_DISTILLATION : Reverse Distillation
+    #     RKDE : Robust Kernel Density Estimation
+    #     STFPM : Spatial-Temporal Feature Pyramid Matching
+    #     UFLOW : Unsupervised Flow Anomaly Detection
+    #     VLM_AD : Video-Level Model for Anomaly Detection
+    #     WIN_CLIP : Windowed Clip Anomaly
+    #     """
+    #     ai_vad_ = AiVadModel
+    #     cfa_ = CfaModel
+    #     cflow_ = CflowModel
+    #     csflow_ = CsflowModel
+    #     draem_ = DraemModel
+    #     dfkde_ = DfkdeModel
+    #     dfm_ = DfmModel
+    #     dsr_ = DsrModel
+    #     efficient_ad_ = EfficientAdModel
+    #     fastflow_ = FastflowModel
+    #     fre_ = FreModel
+    #     ganomaly_ = GanomalyModel
+    #     padim_ = PadimModel
+    #     patchcore_ = PatchcoreModel
+    #     reverse_distillation_ = ReverseDistillationModel
+    #     rkde_ = RkdeModel
+    #     stfpm_ = StfpmModel
+    #     uflow_ = UflowModel
+    #     vlm_ad_ = VlmAdModel
+    #     win_clip_ = WinClipModel
+
+    PyTorchModelDict : Final[dict[AnomalyModelTypeEnum, Any]] = {
+        AnomalyModelTypeEnum.ai_vad_ : AiVadModel,
+        AnomalyModelTypeEnum.cfa_ : CfaModel,
+        AnomalyModelTypeEnum.cflow_ : CflowModel,
+        AnomalyModelTypeEnum.csflow_ : CsFlowModel,
+        AnomalyModelTypeEnum.draem_ : DraemModel,
+        AnomalyModelTypeEnum.dfkde_ : DfkdeModel,
+        AnomalyModelTypeEnum.dfm_ : DFMModel,
+        AnomalyModelTypeEnum.dsr_ : DsrModel,
+        AnomalyModelTypeEnum.efficient_ad_ : EfficientAdModel,
+        AnomalyModelTypeEnum.fastflow_ : FastflowModel,
+        AnomalyModelTypeEnum.fre_ : FREModel,
+        AnomalyModelTypeEnum.ganomaly_ : GanomalyModel,
+        AnomalyModelTypeEnum.padim_ : PadimModel,
+        AnomalyModelTypeEnum.patchcore_ : PatchcoreModel,
+        AnomalyModelTypeEnum.reverse_distillation_ : ReverseDistillationModel,
+        AnomalyModelTypeEnum.rkde_ : RkdeModel,
+        AnomalyModelTypeEnum.stfpm_ : STFPMModel,
+        AnomalyModelTypeEnum.uflow_ : UflowModel,
+        #AnomalyModelTypeEnum.vlm_ad_ : VlmAdModel,
+        AnomalyModelTypeEnum.win_clip_ : WinClipModel
+    }
 
     VALID_MODELS_DICT: Final[dict[AnomalyModelTypeEnum, bool]] = {
         AnomalyModelTypeEnum.ai_vad_ : False,

@@ -8,23 +8,23 @@ from os import makedirs
 
 DATASET_PATH = "./datasets"
 GOOD_PATH = ["train/good", "test/good"]
-Previous : bool = False
+Previous : bool = True
 
 def AbnormalPathGen(DatasetType : DatasetUnit.MVTecDatasetTypeEnum) -> list[str]:
     return [f"test/{anomaly.value}" for anomaly in DatasetUnit.MVTecDataset[DatasetType]]
 
 #@TimeIt
 def main():
-    with open("anomalib_results.txt", "w", encoding="utf-8") as f:
-        f.write("dataset_type, model_type, AUROC, AUPR, Time\n")
-    with open("anomalib_log.log", "w", encoding="utf-8") as f:
-        f.write("Log File\n")
-
     progress_unit : ProgressUnit = ProgressUnit()
     if Previous:
         progress_unit.read_progress()
     else:
         progress_unit.new_progress()
+        with open("anomalib_results.txt", "w", encoding="utf-8") as f:
+            f.write("dataset_type, model_type, AUROC, AUPR, Time\n")
+        with open("anomalib_log.log", "w", encoding="utf-8") as f:
+            f.write("Log File\n")
+
     
     # # Load the data from each dataset type
     for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
@@ -39,6 +39,7 @@ def main():
         # Load model for each model type
         for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
             if progress_unit.progression_matrix_[dataset_type][model_type]:
+                print(f"{dataset_type.value}_{model_type.name}_passed")
                 continue
             # Create the model
             try:
