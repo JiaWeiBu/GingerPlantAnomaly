@@ -120,6 +120,9 @@ T = TypeVar('T', int, float)
 class Size(Generic[T]):
     """
     Size class for 2D dimensions
+
+    :example:
+    >>> square: Size[int] = Size[int](10, 10)
     """
 
     def __init__(self, width: T, height: T) -> None:
@@ -405,6 +408,9 @@ class Size(Generic[T]):
 class Point(Generic[T]):
     """
     Point class for 2D coordinates
+
+    :example:
+    >>> point: Point[int] = Point[int](10, 10)
     """
 
     def __init__(self, x: T, y: T) -> None:
@@ -690,6 +696,9 @@ class Point(Generic[T]):
 class Rect(Generic[T]):
     """
     Rect class for 2D rectangle
+
+    :example:
+    >>> rect: Rect[int] = Rect[int](10, 10, 5, 5)
     """
 
     def __init__(self, width: T, height: T, x: T, y: T) -> None:
