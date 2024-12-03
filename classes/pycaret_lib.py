@@ -3,7 +3,7 @@ from enum import Enum, unique
 from typing import Any
 from pandas import DataFrame, concat
 from pycaret.anomaly import setup, create_model, save_model, load_model, evaluate_model, predict_model, plot_model#, get_config, set_config # type: ignore
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score # type: ignore
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score # type: ignore
 
 from classes.util_lib import Unused
 
@@ -193,15 +193,17 @@ class PyCaretModelUnit :
         precision = precision_score(result["label"], result["Anomaly"])
         recall = recall_score(result["label"], result["Anomaly"])
         f1 = f1_score(result["label"], result["Anomaly"])
+        roc_auc = roc_auc_score(result["label"], result["Anomaly"])
 
         print(name, "result")
         print("Accuracy : ", accuracy)
         print("Precision : ", precision)
         print("Recall : ", recall)
         print("F1-score : ", f1)
+        print("AUROC : ", roc_auc)
 
         with open('./results/result.csv', 'a', encoding='utf-8') as f:
-            f.write(f"{name},{accuracy},{precision},{recall},{f1}\n")
+            f.write(f"{name},{accuracy},{precision},{recall},{f1},{roc_auc}\n")
 
     def Plot(self, plot_type : PyCaretPlotTypeEnum) -> None:
         """

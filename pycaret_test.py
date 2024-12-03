@@ -65,28 +65,35 @@ def LoadMVTecData(*, dataset_type: DatasetUnit.MVTecDatasetTypeEnum, size: Size[
 
     return train, test_good, test_defective
 
-def LoadPlantData(*, size: Size[int], week_num : int, config : bool = False, colour_mode : ImageUnit.ColorModeEnum = ImageUnit.ColorModeEnum.rgb_) -> tuple[DataFrame, DataFrame]:
+def LoadPlantData(*, size: Size[int], week_num : int, config : bool = False, colour_mode : ImageUnit.ColorModeEnum = ImageUnit.ColorModeEnum.rgb_) -> tuple[DataFrame, DataFrame, DataFrame]:
     if config:
         print("Loading Data")
-    
 
-    dataset_module = DatasetUnit()
-    dataset_module.LoadImagesResize(f"{DATASET_PATH}/plant/week{week_num}/60", colour_mode, size)
-    dataset_module.LoadImagesResize(f"{DATASET_PATH}/plant/week{week_num}/top", colour_mode, size)
+    train_module = DatasetUnit()
+    train_module.LoadImagesResize(f"{DATASET_PATH}/re_plant/train/60", colour_mode, size)
+    train_module.LoadImagesResize(f"{DATASET_PATH}/re_plant/train/top", colour_mode, size)
 
-    dataset = DataFrame(dataset_module.images_)
+    test_good_module = DatasetUnit()
+    test_good_module.LoadImagesResize(f"{DATASET_PATH}/re_plant/good/60", colour_mode, size)
+    test_good_module.LoadImagesResize(f"{DATASET_PATH}/re_plant/good/top", colour_mode, size)
 
-    print(f"Dataset Shape: {dataset.shape}")
+    test_defective_module = DatasetUnit()
+    test_defective_module.LoadImagesResize(f"{DATASET_PATH}/re_plant/bad/60", colour_mode, size)
+    test_defective_module.LoadImagesResize(f"{DATASET_PATH}/re_plant/bad/top", colour_mode, size)
 
-    train, test_good = train_test_split(dataset, test_size=0.15, random_state=22)
+    train = DataFrame(train_module.images_)
+    test_good = DataFrame(test_good_module.images_)
+    test_defective = DataFrame(test_defective_module.images_)
 
-    print(f"Train Shape: {train.shape} Test Good Shape: {test_good.shape}")
+    print("Train Shape: ", train.shape)
+    print("Test Good Shape: ", test_good.shape)
+    print("Test Defective Shape: ", test_defective.shape)
 
     if config:
         print("Data Loaded")
 
     #return empty
-    return train, test_good
+    return train, test_good, test_defective
 
 
 def PycaretTrainTestSequence(*,model : PyCaretModelUnit, train : DataFrame, test_good : DataFrame, test_defective : DataFrame, dataset_type : DatasetUnit.MVTecDatasetTypeEnum, model_type : PyCaretModelUnit.PyCaretModelTypeEnum, size : str) -> None:
@@ -144,13 +151,6 @@ def main():
     #                 f.write(f"Error training for {dataset_type.value} on {model_type.value} model: {e}\n")
     #             continue
 
-    # load a random image
-    print("start")
-    test_defective_module = DatasetUnit()
-    test_defective_module.LoadImagesResize(f"testtest", ImageUnit.ColorModeEnum.rgb_, Size[int](64,64))
-    test_defective = DataFrame(test_defective_module.images_)
-    print(f"Test Defective Shape: {test_defective.shape}")
-
 
     # test heer
     image_size : Size[int] = Size[int](64,64)
@@ -160,12 +160,12 @@ def main():
     with open('./results/result.csv', 'w', encoding='utf-8') as f:
         f.write("Model,Accuracy,Precision,Recall,F1-score\n")
 
-    for week_num in range(3, 21):
+    for week_num in [6]:
         with open('./results/result.csv', 'a', encoding='utf-8') as f:
             f.write(f"\nType: week{week_num}\n")
 
         # Load Data
-        train, test_good = LoadPlantData(week_num=week_num, size=image_size, config=True)
+        train, test_good, test_defective = LoadPlantData(week_num=week_num, size=image_size, config=True)
         
     
         print("Training Models")

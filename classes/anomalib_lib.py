@@ -13,6 +13,8 @@ from anomalib.models.image.reverse_distillation.anomaly_map import AnomalyMapGen
 from anomalib.utils.normalization import NormalizationMethod
 from anomalib.data.image.folder import Folder
 from anomalib.deploy import ExportType
+from anomalib.models.image.efficient_ad.torch_model import EfficientAdModelSize
+from anomalib.models.image.rkde.region_extractor import RoiStage
 
 # import all the torch model for all anomalib model
 from anomalib.models.video.ai_vad.torch_model import AiVadModel
@@ -106,26 +108,48 @@ class AnomalyModelUnit:
         VLM_AD : Video-Level Model for Anomaly Detection
         WIN_CLIP : Windowed Clip Anomaly
         """
+        # ai_vad_ = AiVad
+        # cfa_ = Cfa
+        # cflow_ = Cflow
+        # csflow_ = Csflow
+        # draem_ = Draem # can or cannot be used
+        # dfkde_ = Dfkde
+        # dfm_ = Dfm
+        # dsr_ = Dsr
+        # efficient_ad_ = EfficientAd
+        # fastflow_ = Fastflow
+        # fre_ = Fre
+        # ganomaly_ = Ganomaly
+        # padim_ = Padim
+        # patchcore_ = Patchcore
+        # reverse_distillation_ = ReverseDistillation
+        # rkde_ = Rkde
+        # stfpm_ = Stfpm
+        # uflow_ = Uflow
+        # vlm_ad_ = VlmAd
+        # win_clip_ = WinClip
+
+        padim_ = Padim
+        dfkde_ = Dfkde
+        patchcore_ = Patchcore
+        ganomaly_ = Ganomaly
+        draem_ = Draem
+        reverse_distillation_ = ReverseDistillation
+        stfpm_ = Stfpm
+        fastflow_ = Fastflow
         ai_vad_ = AiVad
         cfa_ = Cfa
         cflow_ = Cflow
         csflow_ = Csflow
-        draem_ = Draem # can or cannot be used
-        dfkde_ = Dfkde
-        dfm_ = Dfm
         dsr_ = Dsr
-        efficient_ad_ = EfficientAd
-        fastflow_ = Fastflow
+        dfm_ = Dfm
         fre_ = Fre
-        ganomaly_ = Ganomaly
-        padim_ = Padim
-        patchcore_ = Patchcore
-        reverse_distillation_ = ReverseDistillation
-        rkde_ = Rkde
-        stfpm_ = Stfpm
+        efficient_ad_ = EfficientAd
         uflow_ = Uflow
-        vlm_ad_ = VlmAd
+        rkde_ = Rkde
         win_clip_ = WinClip
+        vlm_ad_ = VlmAd
+
 
     # @unique
     # class AnomalyModelPyTorchModelTypeEnum(Enum):
@@ -219,13 +243,73 @@ class AnomalyModelUnit:
         AnomalyModelTypeEnum.uflow_ : False,
         AnomalyModelTypeEnum.vlm_ad_ : False,
         AnomalyModelTypeEnum.win_clip_ : False
+
+        # # set all models to True
+        # AnomalyModelTypeEnum.ai_vad_ : False,
+        # AnomalyModelTypeEnum.cfa_ : True,
+        # AnomalyModelTypeEnum.cflow_ : True,
+        # AnomalyModelTypeEnum.csflow_ : True,
+        # AnomalyModelTypeEnum.draem_ : True,
+        # AnomalyModelTypeEnum.dfkde_ : True,
+        # AnomalyModelTypeEnum.dfm_ : True,
+        # AnomalyModelTypeEnum.dsr_ : True,
+        # AnomalyModelTypeEnum.efficient_ad_ : True,
+        # AnomalyModelTypeEnum.fastflow_ : True,
+        # AnomalyModelTypeEnum.fre_ : True,
+        # AnomalyModelTypeEnum.ganomaly_ : True,
+        # AnomalyModelTypeEnum.padim_ : True,
+        # AnomalyModelTypeEnum.patchcore_ : True,
+        # AnomalyModelTypeEnum.reverse_distillation_ : True,
+        # AnomalyModelTypeEnum.rkde_ : True,
+        # AnomalyModelTypeEnum.stfpm_ : True,
+        # AnomalyModelTypeEnum.uflow_ : True,
+        # AnomalyModelTypeEnum.vlm_ad_ : False,
+        # AnomalyModelTypeEnum.win_clip_ : True            
     }
 
     MODELS_PARAMS_DICT: Final[dict[AnomalyModelTypeEnum, dict[str, Any]]] = {
-        AnomalyModelTypeEnum.ai_vad_ : {},
-        AnomalyModelTypeEnum.cfa_ : {},
-        AnomalyModelTypeEnum.cflow_ : {},
-        AnomalyModelTypeEnum.csflow_ : {},
+        AnomalyModelTypeEnum.ai_vad_ : { 
+            "box_score_thresh" : 0.7,
+            "persons_only" : False,
+            "min_bbox_area" : 100,
+            "max_bbox_overlap" : 0.65,
+            "enable_foreground_detections" : True,
+            "foreground_kernel_size" : 3,
+            "foreground_binary_threshold" : 18,
+            "n_velocity_bins" : 1,
+            "use_velocity_features" : True,
+            "use_pose_features" : True,
+            "use_deep_features" : True,
+            "n_components_velocity" : 2,
+            "n_neighbors_pose" : 1,
+            "n_neighbors_deep" : 1
+        },
+        AnomalyModelTypeEnum.cfa_ : {
+            "backbone" : "wide_resnet50_2",
+            "gamma_c" : 1,
+            "gamma_d" : 1,
+            "num_nearest_neighbors" : 3,
+            "num_hard_negative_features" : 3,
+            "radius" : 1e-05
+        },
+        AnomalyModelTypeEnum.cflow_ : {
+            "backbone" : "wide_resnet50_2",
+            "layers" : ('layer2', 'layer3', 'layer4'),
+            "pre_trained" : True,
+            "fiber_batch_size" : 64,
+            "decoder" : "freia-cflow",
+            "condition_vector" : 128,
+            "coupling_blocks" : 8,
+            "clamp_alpha" : 1.9,
+            "permute_soft" : False,
+            "lr" : 0.0001
+        },
+        AnomalyModelTypeEnum.csflow_ : {
+            "cross_conv_hidden_channels" : 1024,
+            "n_coupling_blocks" : 4,
+            "clamp" : 3,
+            "num_channels" : 3
+        },
         AnomalyModelTypeEnum.draem_ : {
             "enable_sspcab" : False,
             "sspcab_lambda" : 0.1,
@@ -240,9 +324,31 @@ class AnomalyModelUnit:
             "feature_scaling_method" : FeatureScalingMethod.SCALE,
             "max_training_points" : 40000
         },
-        AnomalyModelTypeEnum.dfm_ : {},
-        AnomalyModelTypeEnum.dsr_ : {},
-        AnomalyModelTypeEnum.efficient_ad_ : {},
+        AnomalyModelTypeEnum.dfm_ : {
+            "backbone" : "resnet50",
+            "layer" : "layer3",
+            "pre_trained" : True,
+            "pooling_kernel_size" : 4,
+            "pca_level" : 0.97,
+            "score_type" : "fre"
+        },
+        AnomalyModelTypeEnum.dsr_ : {
+            "latent_anomaly_strength" : 0.2,
+            "embedding_dim" : 128,
+            "num_embeddings" : 4096,
+            "num_hiddens" : 128,
+            "num_residual_layers" : 2,
+            "num_residual_hiddens" : 64
+        },
+        AnomalyModelTypeEnum.efficient_ad_ : {#imagenet_dir='./datasets/imagenette', teacher_out_channels=384, model_size=EfficientAdModelSize.S, lr=0.0001, weight_decay=1e-05, padding=False, pad_maps=True
+            "imagenet_dir" : './datasets/imagenette',
+            "teacher_out_channels" : 384,
+            "model_size" : EfficientAdModelSize.S,
+            "lr" : 0.0001,
+            "weight_decay" : 1e-05,
+            "padding" : False,
+            "pad_maps" : True
+        },
         AnomalyModelTypeEnum.fastflow_ : {
             "backbone" : "resnet18",
             "pre_trained" : True,
@@ -250,7 +356,15 @@ class AnomalyModelUnit:
             "conv3x3_only" : False,
             "hidden_ratio" : 1.0
         },
-        AnomalyModelTypeEnum.fre_ : {},
+        AnomalyModelTypeEnum.fre_ : {
+            "backbone" : "resnet50",
+            "layer" : "layer3",
+            "pre_trained" : True,
+            "pooling_kernel_size" : 2,
+            "input_dim" : 65536,
+            "latent_dim" : 220
+
+        },
         AnomalyModelTypeEnum.ganomaly_ : {
             "batch_size" : 32,
             "n_features" : 64,
@@ -283,14 +397,34 @@ class AnomalyModelUnit:
             "anomaly_map_mode" : AnomalyMapGenerationMode.ADD,
             "pre_trained" : True
         },
-        AnomalyModelTypeEnum.rkde_ : {},
+        AnomalyModelTypeEnum.rkde_ : {
+            "roi_stage" : RoiStage.RCNN,
+            "roi_score_threshold" : 0.001,
+            "min_box_size" : 25,
+            "iou_threshold" : 0.3,
+            "max_detections_per_image" : 100,
+            "n_pca_components" : 16,
+            "feature_scaling_method" : FeatureScalingMethod.SCALE,
+            "max_training_points" : 40000
+        },
         AnomalyModelTypeEnum.stfpm_ : {
             "backbone" : "resnet18",
             "layers" : ["layer1", "layer2", "layer3"]
         },
-        AnomalyModelTypeEnum.uflow_ : {},
+        AnomalyModelTypeEnum.uflow_ : {
+            "backbone" : "mcait",
+            "flow_steps" : 4,
+            "affine_clamp" : 2.0,
+            "affine_subnet_channels_ratio" : 1.0,
+            "permute_soft" : False
+        },
         AnomalyModelTypeEnum.vlm_ad_ : {},
-        AnomalyModelTypeEnum.win_clip_ : {}
+        AnomalyModelTypeEnum.win_clip_ : {
+            "class_name" : None,
+            "k_shot" : 0,
+            "scales" : (2, 3),
+            "few_shot_source" : None
+        }
     }
 
     @unique
@@ -396,10 +530,11 @@ class AnomalyModelUnit:
         assert isinstance(self.model_, self.model_type_.value), "Model is not valid."
 
         early_stopping_callback = EarlyStopping(
-            monitor="generator_loss_step" if self.model_type_ == AnomalyModelUnit.AnomalyModelTypeEnum.ganomaly_ else "train_loss_step",
+            monitor="generator_loss_step" if self.model_type_ in [AnomalyModelUnit.AnomalyModelTypeEnum.ganomaly_] else "train_loss_step",
+            #monitor="AUROC",
             patience=3,
             mode="min",
-            min_delta=0.02,
+            min_delta=0.005,
             verbose=True,
         )
 
@@ -408,8 +543,9 @@ class AnomalyModelUnit:
             threshold="F1AdaptiveThreshold",
             task=self.task_.value,
             image_metrics=self.image_metrics_,
-            max_epochs=50,
-            callbacks=[] if self.model_type_ in [AnomalyModelUnit.AnomalyModelTypeEnum.dfkde_, AnomalyModelUnit.AnomalyModelTypeEnum.padim_, AnomalyModelUnit.AnomalyModelTypeEnum.patchcore_] else [early_stopping_callback],
+            max_epochs=70,
+            callbacks=[] if self.model_type_ in [AnomalyModelUnit.AnomalyModelTypeEnum.dfkde_, AnomalyModelUnit.AnomalyModelTypeEnum.padim_, AnomalyModelUnit.AnomalyModelTypeEnum.patchcore_, AnomalyModelUnit.AnomalyModelTypeEnum.cfa_] else [early_stopping_callback],
+            #callbacks=[early_stopping_callback],
             accelerator="auto",
             devices="auto",
         )

@@ -4,7 +4,7 @@ from os import listdir, makedirs
 from os.path import isfile, join, exists, dirname
 from cv2 import imread, imshow, waitKey, destroyAllWindows, imwrite, cvtColor, resize, IMREAD_COLOR, IMREAD_GRAYSCALE, INTER_NEAREST, INTER_LINEAR, INTER_CUBIC, INTER_LANCZOS4, COLOR_RGB2GRAY, COLOR_GRAY2RGB
 from numpy import ndarray
-from anomalib.data.image.folder import Folder
+from anomalib.data.image.folder import Folder, TestSplitMode
 from anomalib import TaskType
 
 from classes.util_lib import Size, Rect 
@@ -545,7 +545,7 @@ class DatasetUnit:
         print(f"Loaded {len(dir_images)} images from {paths}")
 
     
-    def AnomalibLoadFolder(self, *,root_path : str, normal_path : list[str], abnormal_path : Optional[list[str]], normal_test_split_ratio : float, datalib_name : str, size : Size, task : TaskType) -> None:
+    def AnomalibLoadFolder(self, *,root_path : str, normal_path : list[str], normal_test_path : Optional[list[str]], abnormal_path : Optional[list[str]], normal_split_ratio : float,test_split_ratio : float, datalib_name : str, size : Size, task : TaskType) -> None:
         """
         Load images from a specified directory, resize them to a specified size, and store them in the dataset.
         
@@ -575,12 +575,14 @@ class DatasetUnit:
             root=root_path,
             normal_dir=normal_path,
             abnormal_dir=abnormal_path,
-            normal_split_ratio=normal_test_split_ratio,
+            normal_test_dir=normal_test_path,
+            normal_split_ratio=normal_split_ratio,
+            test_split_ratio=test_split_ratio,
             image_size=(size.width_, size.height_),
             train_batch_size=32,
             eval_batch_size=32,
             num_workers=2,
-            task=task.value
+            task=task.value,
         )
         self.folder_.setup()
 

@@ -11,11 +11,11 @@ from PIL import Image
 PROMPT = "You are given an image. It is either normal or anomalous. \
         Plaese answer only \"Yes\" or \"No\", No explanation needed.\
         For example : Yes\
-        The image shown is a bottle. Is it anomalous?"
+        The plant. Is it anomalous?"
 
 TEST_PROMPT = "Describe this image"
 
-MODEL_NAME = "llava-llama3"
+MODEL_NAME = "llava"
 
 def UnloadModel():
     generate(model=MODEL_NAME, keep_alive=0)
@@ -96,28 +96,40 @@ def Generate(images_path : list[str], anomaly: bool) -> tuple[int, int]:
     return count, total
 
 def main():
-    types = "pill"
     TP = 0
     TN = 0
     FP = 0
     FN = 0
     print("Good")
     #Generate(DirImages("datasets/bottle/test/good"), False)
-    amount, total = Generate(DirImages(f"datasets/{types}/test/good"), False)
+    amount, total = Generate(DirImages(f"datasets/plant/week3/60"), False)
     TN += amount
     FP += total - amount
-    amount, total = Generate(DirImages(f"datasets/{types}/train/good"), False)
+    amount, total = Generate(DirImages(f"datasets/plant/week3/top"), False)
+    TN += amount
+    FP += total - amount
+    amount, total = Generate(DirImages(f"datasets/bg_rip/week3/60"), False)
+    TN += amount
+    FP += total - amount
+    amount, total = Generate(DirImages(f"datasets/bg_rip/week3/top"), False)
     TN += amount
     FP += total - amount
     print("\n\n\n")
     print("Anomalous")
-    anomaly_types = ["color", "combined", "contamination", "crack", "faulty_imprint", "pill_type", "scratch"]
-    for anomaly_type in anomaly_types:
-        print(anomaly_type)
-        amount, total = Generate(DirImages(f"datasets/{types}/test/{anomaly_type}"), True)
-        TP += amount
-        FN += total - amount
-        print("\n\n\n")
+    amount, total = Generate(DirImages(f"datasets/zombie/week3/60"), True)
+    TP += amount
+    FN += total - amount
+    amount, total = Generate(DirImages(f"datasets/zombie/week3/top"), True)
+    TP += amount
+    FN += total - amount
+    print("\n\n\n")
+    # anomaly_types = ["color", "combined", "contamination", "crack", "faulty_imprint", "pill_type", "scratch"]
+    # for anomaly_type in anomaly_types:
+    #     print(anomaly_type)
+    #     amount, total = Generate(DirImages(f"datasets/{types}/test/{anomaly_type}"), True)
+    #     TP += amount
+    #     FN += total - amount
+    #     print("\n\n\n")
 
     accuracy = (TP + TN) / (TP + TN + FP + FN)
     precision = TP / (TP + FP)
