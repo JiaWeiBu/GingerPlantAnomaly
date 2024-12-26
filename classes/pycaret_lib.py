@@ -1,6 +1,6 @@
 # Import only the function needed
 from enum import Flag, auto
-from typing import Any
+from typing import Any, Final
 from pandas import DataFrame, concat
 from pycaret.anomaly import setup, create_model, save_model, load_model, evaluate_model, predict_model, plot_model#, get_config, set_config # type: ignore
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score # type: ignore
@@ -80,6 +80,21 @@ class PyCaretModelUnit :
         sos_ = auto()
         optimal_ = abod_ | cluster_ | cof_ | histogram_ | iforest_ | knn_ | lof_ | svm_ | pca_ | sod_ | sos_
 
+    ModelTypeFlagName : Final[dict[ModelTypeFlag, str]] = {
+        ModelTypeFlag.abod_ : "abod",
+        ModelTypeFlag.cluster_ : "cluster",
+        ModelTypeFlag.cof_ : "cof",
+        ModelTypeFlag.histogram_ : "histogram",
+        ModelTypeFlag.iforest_ : "iforest",
+        ModelTypeFlag.knn_ : "knn",
+        ModelTypeFlag.lof_ : "lof",
+        ModelTypeFlag.svm_ : "svm",
+        ModelTypeFlag.pca_ : "pca",
+        ModelTypeFlag.sod_ : "sod",
+        ModelTypeFlag.sos_ : "sos",
+        ModelTypeFlag.mcd_ : "mcd",
+    }
+
     # class ModelSourceEnum(Enum):
     #     """
     #     Enum for different sources of anomaly detection models.
@@ -107,22 +122,7 @@ class PyCaretModelUnit :
         tsne_ = auto()
         umap_ = auto()
 
-    ModelTypeFlagName : dict[ModelTypeFlag, str] = {
-            ModelTypeFlag.abod_ : "abod",
-            ModelTypeFlag.cluster_ : "cluster",
-            ModelTypeFlag.cof_ : "cof",
-            ModelTypeFlag.histogram_ : "histogram",
-            ModelTypeFlag.iforest_ : "iforest",
-            ModelTypeFlag.knn_ : "knn",
-            ModelTypeFlag.lof_ : "lof",
-            ModelTypeFlag.svm_ : "svm",
-            ModelTypeFlag.pca_ : "pca",
-            ModelTypeFlag.sod_ : "sod",
-            ModelTypeFlag.sos_ : "sos",
-            ModelTypeFlag.mcd_ : "mcd",
-        }
-
-    PlotTypeFlagName : dict[PlotTypeFlag, str] = {
+    PlotTypeFlagName : Final[dict[PlotTypeFlag, str]] = {
         PlotTypeFlag.tsne_ : "tsne",
         PlotTypeFlag.umap_ : "umap",
     }

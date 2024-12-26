@@ -17,6 +17,7 @@ class PredictPathObject:
     >>> path.test_defective_
     "test_defective"
     """
+    root_ : str
     model_ : str
     test_good_ : str
     test_defective_ : str
@@ -39,9 +40,11 @@ class TrainPathObject:
     >>> path.test_defective_
     "test_defective"
     """
+    root_ : str
     train_ : str
     test_good_ : str
     test_defective_ : str
+    model_save_ : str
 
 class TrainObject:
     """

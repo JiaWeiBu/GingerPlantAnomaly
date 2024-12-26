@@ -2,7 +2,7 @@ from pandas import DataFrame
 from classes.general_lib import TrainObject, TrainPathObject, PredictPathObject
 from classes.pycaret_lib import PyCaretModelUnit
 from classes.dataset_lib import DatasetUnit, ImageUnit
-from classes.util_lib import Size#, Unused
+from classes.util_lib import Size
 
 class PycaretTrain:
     """
@@ -21,7 +21,7 @@ class PycaretTrain:
     >>> run = RunPycaret(param=train)
     """
 
-    def __init__(self, *, param: TrainObject, model_type_flag : PyCaretModelUnit.ModelTypeFlag = PyCaretModelUnit.ModelTypeFlag.knn_ | PyCaretModelUnit.ModelTypeFlag.iforest_):
+    def __init__(self, *, param : TrainObject, model_type_flag : PyCaretModelUnit.ModelTypeFlag = PyCaretModelUnit.ModelTypeFlag.knn_ | PyCaretModelUnit.ModelTypeFlag.iforest_):
         """
         Initialize RunPycaret
 
@@ -47,9 +47,6 @@ class PycaretTrain:
         """
         Load data
 
-        Args:
-        config : bool - configuration flag
-
         Returns:
         tuple[DataFrame, DataFrame, DataFrame] - training, good test, and defective test data
 
@@ -62,13 +59,13 @@ class PycaretTrain:
         print("Loading Data")
 
         train_module = DatasetUnit()
-        train_module.LoadImagesResize(self.params_.path_.train_, self.params_.colour_mode_, self.params_.size_)
+        train_module.LoadImagesResize(f"{self.params_.path_.root_}/{self.params_.path_.train_}", self.params_.colour_mode_, self.params_.size_)
 
         test_good_module = DatasetUnit()
-        test_good_module.LoadImagesResize(self.params_.path_.test_good_, self.params_.colour_mode_, self.params_.size_)
+        test_good_module.LoadImagesResize(f"{self.params_.path_.root_}/{self.params_.path_.test_good_}", self.params_.colour_mode_, self.params_.size_)
         
         test_defective_module = DatasetUnit()
-        test_defective_module.LoadImagesResize(self.params_.path_.test_defective_, self.params_.colour_mode_, self.params_.size_)
+        test_defective_module.LoadImagesResize(f"{self.params_.path_.root_}/{self.params_.path_.test_defective_}", self.params_.colour_mode_, self.params_.size_)
 
         print("Converting to DataFrame")
             
@@ -85,6 +82,20 @@ class PycaretTrain:
 
     def TrainTestSequence(self, *, train : DataFrame, test_good : DataFrame, test_defective : DataFrame, model_type : PyCaretModelUnit.ModelTypeFlag) -> None:
         """
+        Train test sequence
+
+        Args:
+        train : DataFrame - training data
+        test_good : DataFrame - good test data
+        test_defective : DataFrame - defective test data
+        model_type : PyCaretModelUnit.ModelTypeFlag - model type flag
+
+        Example:
+        >>> path = TrainPathObject("train", "test_good", "test_defective")
+        >>> train = TrainObject(path, ImageUnit.ColorModeEnum.rgb_, Size(100, 100))
+        >>> run = RunPycaret(param=train)
+        >>> train, test_good, test_defective = run.LoadData()
+        >>> run.TrainTestSequence(train=train, test_good=test_good, test_defective=test_defective, model_type=PyCaretModelUnit.ModelTypeFlag.knn_)
         """
         self.model_.Train(data=train, model_type=model_type)
         # self.model_.Evaluate()
@@ -100,6 +111,15 @@ class PycaretTrain:
         self.model_.EvaluationMetrics(test_good, test_defective, f"{self.params_.name_}_{PyCaretModelUnit.ModelTypeFlagName[model_type]}")
 
     def Run(self) -> None:
+        """
+        Run Pycaret
+
+        Example:
+        >>> path = TrainPathObject("train", "test_good", "test_defective")
+        >>> train = TrainObject(path, ImageUnit.ColorModeEnum.rgb_, Size(100, 100))
+        >>> run = RunPycaret(param=train)
+        >>> run.Run()
+        """
         train, test_good, test_defective = self.LoadData()
 
         for model_type in self.model_type_flag_:
@@ -118,12 +138,7 @@ class PycaretPredict:
     """
 
     def __init__(self, *, param: PredictPathObject):
-        """
-        """
-        self.params_ = param
-
-    ...
-
+        ...
 
 def main():
     train_object : TrainObject = TrainObject(TrainPathObject("train", "test_good", "test_defective"), ImageUnit.ColorModeEnum.rgb_, Size(100, 100), "plant")
