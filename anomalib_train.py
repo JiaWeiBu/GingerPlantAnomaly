@@ -1,5 +1,6 @@
 from os.path import exists
 from os import makedirs
+from typing import Any
 from classes.general_lib import TrainObject, TrainPathObject, PredictPathObject
 from classes.util_lib import Size
 from classes.anomalib_lib import AnomalyModelUnit
@@ -59,7 +60,7 @@ class AnomalibTrain:
         """
         print("Loading Data")
 
-        self.dataset_unit_.AnomalibLoadFolder(root_path=self.param_.path_.root_, normal_path=self.param_.path_.train_, normal_test_path=self.param_.path_.test_good_, abnormal_path=self.param_.path_.test_defective_, normal_split_ratio=0.0, test_split_ratio=0.0, datalib_name=self.param_.name_, size=self.param_.size_, task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
+        self.dataset_unit_.AnomalibLoadFolder(root_path=self.param_.path_.root_, normal_path=[self.param_.path_.train_], normal_test_path=[self.param_.path_.test_good_], abnormal_path=[self.param_.path_.test_defective_], normal_split_ratio=0.0, test_split_ratio=0.0, datalib_name=self.param_.name_, size=self.param_.size_, task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_.value)
         self.dataset_unit_.AnomalibDatasetValidation()
 
         print("Data Loaded")
@@ -82,6 +83,7 @@ class AnomalibTrain:
         >>> result = anomalib_train.TrainTestSequence(model_type=AnomalyModelUnit.ModelTypeFlag.padim_)
         """
         anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC", "AUPR"])
+        assert self.dataset_unit_.folder_ is not None, "Dataset not loaded"
         anomaly_model.Train(datamodule=self.dataset_unit_.folder_)
         result = anomaly_model.Evaluate(datamodule=self.dataset_unit_.folder_)
 
