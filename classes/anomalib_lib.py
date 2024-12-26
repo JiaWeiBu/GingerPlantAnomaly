@@ -87,26 +87,26 @@ class AnomalyModelUnit:
         Enum for different types of anomaly detection models.
 
         Model from Anomalib
-        AI_VAD : AI Video Anomaly Detection
-        CFA : Contextual Feature Anomaly
-        CFLOW : Contextual Flow Anomaly
-        CSFLOW : Contextual Spatial Flow Anomaly
-        DRAEM : Deep Recurrent Autoencoder for Extreme Multiclass
+        AI_VAD : Accurate and Interpretable Video Anomaly Detection
+        CFA : Coupled-hypersphere-based Feature Adaptation
+        CFLOW : Conditional Normalizing Flows
+        CSFLOW : Cross-Scale-Flows
+        DRÆM : Discriminatively Trained Reconstruction Anomaly Embedding Model
         DFKDE : Deep Feature Kernel Density Estimation
-        DFM : Deep Feature Matching
-        DSR : Deep Spatial Regression
+        DFM : Deep Feature Modelling
+        DSR : Dual Subspace Re-Projections
         EFFICIENT_AD : Efficient Anomaly Detection
         FASTFLOW : Fast Flow Anomaly
-        FRE : Feature Representation Ensemble
-        GANOMALY : GANomaly
-        PADIM : Patch-based Anomaly Detection with Image Matching
+        FRE : Feature Reconstruction Error
+        GANOMALY :  Generative Adversarial Networks for Anomaly Detection
+        PADIM : Patch Distribution Modeling
         PATCHCORE : PatchCore
         REVERSE_DISTILLATION : Reverse Distillation
-        RKDE : Robust Kernel Density Estimation
-        STFPM : Spatial-Temporal Feature Pyramid Matching
-        UFLOW : Unsupervised Flow Anomaly Detection
+        RKDE : Region-Based Kernel Density Estimation
+        STFPM : Student-Teacher Feature Pyramid Matching
+        UFLOW :  U-shaped Normalizing Flow
         VLM_AD : Video-Level Model for Anomaly Detection
-        WIN_CLIP : Windowed Clip Anomaly
+        WIN_CLIP : Windowed-Based Contrastive Language-Image Pre-training
         """
         # ai_vad_ = AiVad
         # cfa_ = Cfa
