@@ -1,117 +1,132 @@
-from classes.anomalib_lib import AnomalyModelUnit
-from classes.dataset_lib import DatasetUnit, ImageUnit
-from classes.util_lib import Size, TimeIt
-from classes.progress_lib import ProgressUnit
-from time import time
 from os.path import exists
 from os import makedirs
-
-DATASET_PATH = "./datasets"
-GOOD_PATH = ["train/good", "test/good"]
-Previous : bool = True
-
-def AbnormalPathGen(DatasetType : DatasetUnit.MVTecDatasetTypeEnum) -> list[str]:
-    return [f"test/{anomaly.value}" for anomaly in DatasetUnit.MVTecDataset[DatasetType]]
-
-#@TimeIt
-def main():
-    # progress_unit : ProgressUnit = ProgressUnit()
-    # if Previous:
-    #     progress_unit.read_progress()
-    # else:
-    #     progress_unit.new_progress()
-    #     with open("anomalib_results.txt", "w", encoding="utf-8") as f:
-    #         f.write("dataset_type, model_type, AUROC, AUPR, Time\n")
-    #     with open("anomalib_log.log", "w", encoding="utf-8") as f:
-    #         f.write("Log File\n")
-
-    
-    # # # Load the data from each dataset type
-    # for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
-    # #for dataset_type in [DatasetUnit.MVTecDatasetTypeEnum.bottle_]:
-    #     # Load the data from the dataset
-    #     print(f"Loading {dataset_type.value}")
-    #     dataset_unit : DatasetUnit = DatasetUnit()
-    #     dataset_unit.AnomalibLoadFolder(root_path = f"{DATASET_PATH}/{dataset_type.value}", normal_path=GOOD_PATH, abnormal_path=AbnormalPathGen(dataset_type), normal_test_split_ratio=0.2, datalib_name=dataset_type.value, size=Size(64, 64), task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
-    #     dataset_unit.AnomalibDatasetValidation()
-    #     print(f"Loaded {dataset_type.value}")
-
-    #     # Load model for each model type
-    #     for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
-    #         if progress_unit.progression_matrix_[dataset_type][model_type]:
-    #             print(f"{dataset_type.value}_{model_type.name}_passed")
-    #             continue
-    #         # Create the model
-    #         try:
-    #             start : float = time()
-    #             print(f"Training {dataset_type.value} with {model_type.name}")
-    #             anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC", "AUPR"])
-    #             anomaly_model.Train(datamodule=dataset_unit.folder_)
-    #             result = anomaly_model.Evaluate(datamodule=dataset_unit.folder_)
-
-    #             with open("anomalib_results.txt", "a", encoding="utf-8") as f:
-    #                 f.write(f"{dataset_type.value},{model_type.value},{result[0]['image_AUROC']},{result[0]['image_AUPR']},{time() - start}\n")
-    #                 print("result added")
-                
-    #             progress_unit.update_progress(dataset_type, model_type)
-
-    #             # save model in models/data_type/model_type
-    #             # check if the directory exists
-    #             # if not create it
-    #             if not exists(f"models/{dataset_type.value}"):
-    #                 makedirs(f"models/{dataset_type.value}")
-    #             if not exists(f"models/{dataset_type.value}/{model_type.name}"):
-    #                 makedirs(f"models/{dataset_type.value}/{model_type.name}")
-    #             anomaly_model.Save(f"models/{dataset_type.value}/{model_type.name}")
-
-    #         except Exception as e:
-    #             with open("anomalib_log.log", "a", encoding="utf-8") as f:
-    #                 f.write(f"Dataset Type: {dataset_type.value}\nModel Type: {model_type.value}\nError: {e}\n\n")
-    #             continue
+from classes.general_lib import TrainObject, TrainPathObject, PredictPathObject
+from classes.util_lib import Size
+from classes.anomalib_lib import AnomalyModelUnit
+from classes.dataset_lib import DatasetUnit
 
 
-    with open("plant_anomalib_results5.txt", "w", encoding="utf-8") as f:
-        f.write("dataset_type, model_type, AUROC, AUPR, Time\n")
-    with open("plant_anomalib_log.log", "w", encoding="utf-8") as f:
-        f.write("Log File\n")
+class AnomalibTrain:
+    """
+    The AnomalibTrain class is used to train the model for the Anomalib library.
 
-    # load plant data from the dataset
-    train_unit : DatasetUnit = DatasetUnit()
-    train_unit.AnomalibLoadFolder(root_path=f"{DATASET_PATH}/re_plant", normal_path=["train/top","train/60",], normal_test_path=["good/top","good/60"], abnormal_path=["bad/60", "bad/top"], normal_split_ratio=0.0, test_split_ratio=0.0, datalib_name="plant",size=Size[int](64, 64), task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
-    train_unit.AnomalibDatasetValidation()
-    print(f"Loaded plant train")
+    Attributes:
+    param_ : TrainObject - The TrainObject containing the parameters for training the model.
+    model_ : AnomalyModelUnit - The AnomalyModelUnit object.
+    model_type_flag_ : AnomalyModelUnit.ModelTypeFlag - The model type flag for the AnomalyModelUnit.
+    dataset_unit_ : DatasetUnit - The DatasetUnit object.
 
-    # test_unit : DatasetUnit = DatasetUnit()
-    # test_unit.AnomalibLoadFolder(root_path=f"{DATASET_PATH}", normal_path=["plant/week3/60","plant/week3/top","bg_rip/week3/60","bg_rip/week3/top"], abnormal_path=["zombie/week3/60", "zombie/week3/top"], normal_test_split_ratio=100, datalib_name="plant",size=Size[int](64, 64), task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
-    # test_unit.AnomalibDatasetValidation()
-    # print(f"Loaded plant test")
+    Example:
+    >>> param = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+    >>> model_type_flag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
+    >>> anomalib_train = AnomalibTrain(param = param, model_type_flag = model_type_flag)
+    """
 
-    for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
-        # Create the model
-        try:
-            start : float = time()
-            print(f"Training plant with {model_type.name}")
-            anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC", "AUPR"])
-            anomaly_model.Train(datamodule=train_unit.folder_)
-            result = anomaly_model.Evaluate(datamodule=train_unit.folder_)
+    def __init__(self, *, param : TrainObject, model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_) -> None:
+        """
+        Initialize the AnomalibTrain class.
 
-            with open("plant_anomalib_results5.txt", "a", encoding="utf-8") as f:
-                f.write(f"plant,{model_type.value},{result[0]['image_AUROC']},{result[0]['image_AUPR']},{time() - start}\n")
-                print("result added")
-            
-            # save model in models/data_type/model_type
-            # check if the directory exists
-            # if not create it
-            if not exists(f"models/plant"):
-                makedirs(f"models/plant")
-            if not exists(f"models/plant/{model_type.name}"):
-                makedirs(f"models/plant/{model_type.name}")
-            anomaly_model.Save(f"models/plant/{model_type.name}")
-        
-        except Exception as e:
-            with open("plant_anomalib_log.log", "a", encoding="utf-8") as f:
-                f.write(f"Dataset Type: plant\nModel Type: {model_type.value}\nError: {e}\n\n")
+        TODO : Missing Config
+
+        Args:
+        param : TrainObject - The TrainObject containing the parameters for training the model.
+        model_type_flag : AnomalyModelUnit.ModelTypeFlag - The model type flag for the AnomalyModelUnit.
+
+        Attributes:
+        param : TrainObject - The TrainObject containing the parameters for training the model.
+        model_ : AnomalyModelUnit - The AnomalyModelUnit object.
+        model_type_flag_ : AnomalyModelUnit.ModelTypeFlag - The model type flag for the AnomalyModelUnit.
+
+        Example:
+        >>> param = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> model_type_flag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
+        >>> anomalib_train = AnomalibTrain(param = param, model_type_flag = model_type_flag)
+        """
+        self.param_ : TrainObject = param
+        self.model_ : AnomalyModelUnit = AnomalyModelUnit()
+        self.model_type_flag_ : AnomalyModelUnit.ModelTypeFlag = model_type_flag
+        self.dataset_unit_ : DatasetUnit = DatasetUnit()
+
+    def LoadData(self) -> None:
+        """
+        Load the data for training the model.
+
+        Example:
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
+        >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
+        >>> anomalib_train.LoadData()
+        """
+        print("Loading Data")
+
+        self.dataset_unit_.AnomalibLoadFolder(root_path=self.param_.path_.root_, normal_path=self.param_.path_.train_, normal_test_path=self.param_.path_.test_good_, abnormal_path=self.param_.path_.test_defective_, normal_split_ratio=0.0, test_split_ratio=0.0, datalib_name=self.param_.name_, size=self.param_.size_, task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_)
+        self.dataset_unit_.AnomalibDatasetValidation()
+
+        print("Data Loaded")
+
+    def TrainTestSequence(self, *, model_type : AnomalyModelUnit.ModelTypeFlag) -> Any:
+        """
+        Train the model and evaluate it.
+
+        Args:
+        model_type : AnomalyModelUnit.ModelTypeFlag - The model type flag for the AnomalyModelUnit.
+
+        Returns:
+        Any - The result of the evaluation.
+
+        Example:
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
+        >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
+        >>> anomalib_train.LoadData()
+        >>> result = anomalib_train.TrainTestSequence(model_type=AnomalyModelUnit.ModelTypeFlag.padim_)
+        """
+        anomaly_model : AnomalyModelUnit = AnomalyModelUnit(model_type=model_type, image_metrics=["AUROC", "AUPR"])
+        anomaly_model.Train(datamodule=self.dataset_unit_.folder_)
+        result = anomaly_model.Evaluate(datamodule=self.dataset_unit_.folder_)
+
+        if not exists(self.param_.path_.model_save_):
+            makedirs(self.param_.path_.model_save_)
+        anomaly_model.Save(self.param_.path_.model_save_)
+
+        return result
+
+    def Run(self) -> None:
+        """
+        Run the training sequence.
+
+        Example:
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
+        >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
+        >>> anomalib_train.Run()
+        """
+        self.LoadData()
+
+        for model_type in self.model_type_flag_:
+            try:
+                print(f"Training {self.param_.name_} on {model_type.value} model")
+                result = self.TrainTestSequence(model_type=model_type)
+                print(f"Result: {result}")
+            except Exception as e:
+                print(f"Error training for {self.param_.name_} on {model_type.value} model: {e}")
             continue
 
-if __name__ == '__main__':
+class AnomalibTest:
+    """
+    The AnomalibTest class is used to test the model for the Anomalib library.
+
+    Unimplemented as of now.
+    """
+
+    def __init__(self) -> None:
+        ...
+
+def main():
+    TrainObject : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+    model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_    
+    anomalib_train : AnomalibTrain = AnomalibTrain(param=TrainObject, model_type_flag=model_type_flag)
+    anomalib_train.Run()
+
+if __name__ == "__main__":
     main()
