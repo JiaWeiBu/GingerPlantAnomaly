@@ -10,10 +10,11 @@ TOKEN : str = str(getenv('TOKEN_BOT_GITHUB'))
 INTENTS : Intents = Intents.default()
 INTENTS.message_content = True
 CLIENT : Client = Client(intents=INTENTS)
-MESSAGE_UNIT = MessageUnit()
+MESSAGE_UNIT = MessageUnit(keyword="~")
+
 
 async def SendMessage(message: Message) -> None:
-    response : MessageObject = MESSAGE_UNIT.GetResponse(message)
+    response : MessageObject = await MESSAGE_UNIT.GetResponse(message)
 
     if not response.EmptyMessage():
         await message.channel.send(response.message_, embed=response.embed_, file=response.file_) # type: ignore
@@ -26,13 +27,16 @@ async def on_ready() -> None:
     for channel in MESSAGE_UNIT.ChannelEnum:
         MESSAGE_UNIT.SetChannelWebhookUrl(channel=channel, webhook_url=str(getenv(MESSAGE_UNIT.channel_object_dict_[channel].webhook_env_)))
         MESSAGE_UNIT.SetChannelPass(channel=channel, pass_=randint(100000, 999999))
-        await WebhookSend(webhook_url=MESSAGE_UNIT.channel_object_dict_[channel].webhook_url_, content=f"{INIT_PHRASE} {MESSAGE_UNIT.channel_object_dict_[channel].pass_}")
+        await WebhookSend(webhook_url=MESSAGE_UNIT.channel_object_dict_[channel].webhook_url_, content=f"{MESSAGE_UNIT.keyword_}{INIT_PHRASE} {MESSAGE_UNIT.channel_object_dict_[channel].pass_}")
     print(f"Init Configurations are done")
 
 
 @CLIENT.event
 async def on_message(message: Message) -> None:
     if message.author == CLIENT.user:
+        return
+
+    if message.content[0] != MESSAGE_UNIT.keyword_:
         return
     
     await SendMessage(message)
