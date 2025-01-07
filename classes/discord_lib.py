@@ -21,6 +21,7 @@ class MessageObject:
     - SetMessage: Set the message for the message object
     - CreateEmbed: Create an embed object
     - EmbedSetFooter: Set the footer for the embed
+    - EmbedAddField: Add a field to the embed
     - EmbedSetImage: Set the image for the embed
     - EmbedSetThumbnail: Set the thumbnail for the embed
     - SetFile: Set the file object for the message
@@ -196,6 +197,23 @@ class MessageObject:
         """
         assert self.embed_ is not None, "Embed object is not created yet"
         self.embed_.set_footer(text=text, icon_url=icon_url)
+
+    def EmbedAddField(self, *, name : str, value : str, inline : bool = True) -> None: 
+        """
+        Add a field to the embed
+
+        Args:
+        - name: The name of the field
+        - value: The value of the field
+        - inline: Whether the field is inline or not
+
+        Example:
+        >>> message_object_ = MessageObject()
+        >>> message_object_.CreateEmbed(title="Hello World", description="This is a test message")
+        >>> message_object_.EmbedAddField(name="Field Name", value="Field Value")
+        """
+        assert self.embed_ is not None, "Embed object is not created yet"
+        self.embed_.add_field(name=name, value=value, inline=inline)
     
     def EmbedSetImage(self, url : str) -> None:
         """
