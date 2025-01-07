@@ -25,6 +25,7 @@ async def WebhookSend(webhook_url : str, *, content: str) -> None:
 class MessageUnit:
     """
     Class for the message unit
+    THis function will take take in the Enum Regristrtion and the callback function and the password for the channel
 
     How it works:
     1. Set the pass for the channels
@@ -49,6 +50,8 @@ class MessageUnit:
     - ChannelObject: Class for the channel object
 
     Methods:
+    - __init__: Initializes the message unit.
+    - RegisterChannelObject: Adds the channel object to the channel object dictionary.
     - SetChannelID: Sets the channel ID for a given channel.
     - SetChannelPass: Sets the pass for the channel.
     - SetChannelWebhookUrl: Sets the webhook URL for the channel.
@@ -56,15 +59,17 @@ class MessageUnit:
     - RunFunc: Runs the function for the given message.
     - GetResponse: Gets the response for the given message.
     - InitRoutine: Initializes the system by setting the channel ID based on the password created using your own OTP.
-    - ResLog: This is used as a logging for the system using the log channel from Discord.
-    - ResPredict: This is used for the prediction of the system using the prediction channel from Discord.
-    - ResDebug: This is used for the debug of the system using the debug channel from Discord.
 
     Example:
+    >>> @unique
+    >>> class ChannelEnum(Enum):
+    >>>     log_ = auto()
+    >>>     predict_ = auto()
+    >>>     debug_ = auto()
     >>> message_unit = MessageUnit()
-    >>> message_unit.SetChannelPass("password")
-    >>> message_unit.InitRoutine()
-    >>> response = message_unit.GetResponse("message")
+    >>> message_unit.SetChannelID(channel=MessageUnit.ChannelEnum.log_, channel_id=123456789)
+    >>> message_unit.ChannelSetInit()
+    >>> message_unit.GetResponse(discord.Message)
     >>> print(response)
     """
     class ChannelObject:
