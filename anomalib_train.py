@@ -1,7 +1,8 @@
 from os.path import exists
 from os import makedirs
 from typing import Any
-from classes.general_lib import TrainObject, TrainPathObject, PredictPathObject
+from classes.general_lib import TrainObject, TrainPathObject#, PredictPathObject
+from classes.dataset_lib import ImageUnit
 from classes.util_lib import Size
 from classes.anomalib_lib import AnomalyModelUnit
 from classes.dataset_lib import DatasetUnit
@@ -125,9 +126,9 @@ class AnomalibTest:
         ...
 
 def main():
-    TrainObject : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+    train_object : TrainObject = TrainObject(path=TrainPathObject(root='datasets/re_plant', train=['train/60', 'train/top'], test_good=['good/60', 'good/top'], test_defective=['bad/60', "bad/top"], model_save='model_save_path'), name='dataset_name', size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_)
     model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_    
-    anomalib_train : AnomalibTrain = AnomalibTrain(param=TrainObject, model_type_flag=model_type_flag)
+    anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag)
     anomalib_train.Run()
 
 if __name__ == "__main__":

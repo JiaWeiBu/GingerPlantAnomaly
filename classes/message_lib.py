@@ -21,6 +21,44 @@ async def WebhookSend(webhook_url : str, *, content: str) -> None:
     async with ClientSession() as session:
         await Webhook.from_url(webhook_url, session=session).send(content=content)
 
+class ChannelObject:
+    """
+    Class for the channel object
+
+    Attributes:
+    - id_ (int): The channel ID
+    - webhook_env_ (str): The webhook environment variable
+    - webhook_url_ (str): The webhook URL
+    - func_ (Callable): The function to run for the channel
+    - pass_ (int): The password for the channel
+    """
+    def __init__(self, *, ids : int, webhook_env : str, webhook_url : str, func : Callable, password : int) -> None:
+        """
+        Initializes the channel object.
+
+        Args:
+        - ids (int): The channel ID
+        - webhook_env (str): The webhook environment variable
+        - webhook_url (str): The webhook URL
+        - func (Callable): The function to run for the channel
+        - password (int): The password for the channel
+
+        Attributes:
+        - id_ (int): The channel ID
+        - webhook_env_ (str): The webhook environment variable
+        - webhook_url_ (str): The webhook URL
+        - func_ (Callable): The function to run for the channel
+        - pass_ (int): The password for the channel
+
+        Example:
+        >>> channel_object = ChannelObject(ids=123456789, webhook_env="CHANNEL_WEBHOOK_LOG", webhook_url="", func=ResLog, password=123456789)
+        """
+        self.id_ : int = ids
+        self.webhook_env_ : str = webhook_env
+        self.webhook_url_ : str = webhook_url
+        self.func_ : Callable = func
+        self.pass_ : int = password
+
 # Discord Message Bot
 class MessageUnit:
     """
@@ -72,43 +110,6 @@ class MessageUnit:
     >>> message_unit.GetResponse(discord.Message)
     >>> print(response)
     """
-    class ChannelObject:
-        """
-        Class for the channel object
-
-        Attributes:
-        - id_ (int): The channel ID
-        - webhook_env_ (str): The webhook environment variable
-        - webhook_url_ (str): The webhook URL
-        - func_ (Callable): The function to run for the channel
-        - pass_ (int): The password for the channel
-        """
-        def __init__(self, *, ids : int, webhook_env : str, webhook_url : str, func : Callable, password : int) -> None:
-            """
-            Initializes the channel object.
-
-            Args:
-            - ids (int): The channel ID
-            - webhook_env (str): The webhook environment variable
-            - webhook_url (str): The webhook URL
-            - func (Callable): The function to run for the channel
-            - password (int): The password for the channel
-
-            Attributes:
-            - id_ (int): The channel ID
-            - webhook_env_ (str): The webhook environment variable
-            - webhook_url_ (str): The webhook URL
-            - func_ (Callable): The function to run for the channel
-            - pass_ (int): The password for the channel
-
-            Example:
-            >>> channel_object = ChannelObject(ids=123456789, webhook_env="CHANNEL_WEBHOOK_LOG", webhook_url="", func=ResLog, password=123456789)
-            """
-            self.id_ : int = ids
-            self.webhook_env_ : str = webhook_env
-            self.webhook_url_ : str = webhook_url
-            self.func_ : Callable = func
-            self.pass_ : int = password
 
     def __init__(self, keyword) -> None:
         """
@@ -125,7 +126,7 @@ class MessageUnit:
         - keyword_ (str): The keyword to check for the message.
         """
         self.channel_id_dict_inv_ : dict[int, Enum] = {}
-        self.channel_object_dict_ : dict[Enum, self.ChannelObject] = {}
+        self.channel_object_dict_ : dict[Enum, ChannelObject] = {}
         self.init_ : bool = False
         self.num_channels_init_ : int = 0
         self.keyword_ : str = keyword
@@ -238,7 +239,7 @@ class MessageUnit:
 
         # Check if the system is initialized
         if not self.init_:
-            self.InitRoutine(message=message, message_object=message_object)
+            await self.InitRoutine(message=message, message_object=message_object)
             return message_object
         
         # Validate the channel
@@ -250,7 +251,7 @@ class MessageUnit:
         message_object.SetMessage(f"Hello how are you? {message.content}")
         return message_object
 
-    def InitRoutine(self, message : Message, message_object : MessageObject):
+    async def InitRoutine(self, message : Message, message_object : MessageObject) -> None:
         """
         Initializes the system by
         !. Setting the channel ID based on the password created using your own OTP

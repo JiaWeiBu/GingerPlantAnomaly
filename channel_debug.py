@@ -70,6 +70,7 @@ async def ResTest(message : Message, message_object : MessageObject) -> None:
     This is used for the test of the system
     """
     message_object.SetMessage("Debug : " + message.content)
+    assert CHANNEL_MESSAGE_DEBUG.channel_object_ is not None
 
 def Setup() -> None:
     """

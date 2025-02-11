@@ -1,7 +1,8 @@
-from typing import Callable
+from typing import Callable, Optional
 from discord import Message
 from enum import Enum, auto, unique
 from classes.discord_lib import MessageObject
+from classes.message_lib import ChannelObject
 
 @unique
 class CommandEnum(Enum):
@@ -51,7 +52,6 @@ class CommandObject():
         self.description_ : str = description
         self.function_ : Callable = function
 
-
 class ChannelMessageTemplate():
     """
     This is a factory to create the ChannelMessage
@@ -63,6 +63,7 @@ class ChannelMessageTemplate():
     Methods:
     RegisterCommand : Register the command for the ChannelMessageTemplate.
     SetupCommand : Setup the command for the ChannelMessageTemplate.
+    ImportChannelObject : Import the ChannelObject for the ChannelMessageTemplate
     RunFunc : Run the function for the ChannelMessageTemplate.
     ResMessage : Template for responding Messages
 
@@ -83,6 +84,7 @@ class ChannelMessageTemplate():
         """
         self.command_object_dict_ : dict[Enum, CommandObject] = {}
         self.command_name_dict_ : dict[str, Enum] = {}
+        self.channel_object_ : Optional[ChannelObject] = None
 
 
     def RegisterCommand(self, command_enum : Enum, command_object : CommandObject) -> None:
@@ -116,6 +118,20 @@ class ChannelMessageTemplate():
             self.command_name_dict_[command_object.name_] = command_enum
         print(f"{self.__class__.__name__} Setup Done")
 
+    def ImportChannelObject(self, channel_object : ChannelObject) -> None:
+        """
+        Import the ChannelObject for the ChannelMessageTemplate.
+
+        Args:
+        channel_object : ChannelObject - The ChannelObject for the channel.
+
+        Example:
+        >>> channel_object = ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_LOG", webhook_url="", func=channel_log.CHANNEL_MESSAGE_LOG.ResMessage, password=0)
+        >>> channel_message_template = ChannelMessageTemplate()
+        >>> channel_message_template.ImportChannelObject(channel_object=channel_object)
+        """
+        self.channel_object_ = channel_object
+
     async def RunFunc(self, *, func : Callable[[Message, MessageObject], None], message : Message, message_object : MessageObject) -> None:
         """
         Run the function for the ChannelMessageTemplate.
@@ -146,6 +162,7 @@ class ChannelMessageTemplate():
         else:
             message_object.SetMessage("Command not found")
 
+# SAMPLE CODE
 CHANNEL_MESSAGE_TEMPLATE : ChannelMessageTemplate = ChannelMessageTemplate()
 
 async def ResHelp(message : Message, message_object : MessageObject) -> None:
