@@ -61,7 +61,7 @@ class AnomalibTrain:
         """
         print("Loading Data")
 
-        self.dataset_unit_.AnomalibLoadFolder(root_path=self.param_.path_.root_, normal_path=[self.param_.path_.train_], normal_test_path=[self.param_.path_.test_good_], abnormal_path=[self.param_.path_.test_defective_], normal_split_ratio=0.0, test_split_ratio=0.0, datalib_name=self.param_.name_, size=self.param_.size_, task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_.value)
+        self.dataset_unit_.AnomalibLoadFolder(root_path=self.param_.path_.root_, normal_path=self.param_.path_.train_, normal_test_path=self.param_.path_.test_good_, abnormal_path=self.param_.path_.test_defective_, normal_split_ratio=0.0, test_split_ratio=0.0, datalib_name=self.param_.name_, size=self.param_.size_, task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_.value)
         self.dataset_unit_.AnomalibDatasetValidation()
 
         print("Data Loaded")
@@ -126,7 +126,7 @@ class AnomalibTest:
         ...
 
 def main():
-    train_object : TrainObject = TrainObject(path=TrainPathObject(root='datasets/re_plant', train=['train/60', 'train/top'], test_good=['good/60', 'good/top'], test_defective=['bad/60', "bad/top"], model_save='model_save_path'), name='dataset_name', size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_)
+    train_object : TrainObject = TrainObject(path=TrainPathObject(root='datasets/re_plant', train=['train/60', 'train/top'], test_good=['good/60', 'good/top'], test_defective=['bad/60', "bad/top"], model_save='models'), name='plant_test_run', size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_)
     model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_    
     anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag)
     anomalib_train.Run()
