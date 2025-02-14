@@ -10,24 +10,16 @@ from enum import Enum, auto
 from discord import Thread, Message
 from classes.message_lib import WebhookSend
 from classes.discord_lib import MessageObject
+from classes.general_lib import Singleton
 
-class LoggerTypeEnum(Enum):
-    """
-    Enum class for the logger types
-
-    Attributes:
-    default_ : Default logger type
-    file_ : File logger type
-    discord_ : Discord logger type
-    """
-    default_ = auto()
-    file_ = auto()
-    discord_ = auto()
-
+@Singleton
 class LoggerTemplate:
     """
     The LoggerTemplate class is used to create a template for logging.
     It can be used as a print function.
+
+    Decorators:
+    Singleton : create a single instance of the class
 
     Methods:
     Open : open the logger
@@ -61,10 +53,14 @@ class LoggerTemplate:
     def Close(self) -> None:
         ...
 
+@Singleton
 class AsyncLoggerTemplate:
     """
     The AsyncLoggerTemplate class is used to create a template for logging.
     It can be used as a async print function.
+
+    Decorators:
+    Singleton : create a single instance of the class
 
     Methods:
     Open : open the logger
@@ -98,9 +94,13 @@ class AsyncLoggerTemplate:
     async def Close(self) -> None:
         ...
 
+@Singleton
 class LoggerFile(LoggerTemplate):
     """
     The LoggerFile class is used to create a file logger.
+
+    Decorators:
+    Singleton : create a single instance of the class
 
     Attributes:
     file_ : file - the file object
@@ -177,9 +177,13 @@ class LoggerFile(LoggerTemplate):
         self.file_.close() # type: ignore
         self.open_ = False
 
+@Singleton
 class LoggerDiscord(AsyncLoggerTemplate):
     """
     The LoggerDiscord class is used to create a discord logger.
+
+    Decorators:
+    Singleton :Se create a single instance of the class
 
     Attributes:
     thread_ : Thread - the thread object
@@ -251,6 +255,7 @@ class LoggerDiscord(AsyncLoggerTemplate):
 
         Args:
         message_object : MessageObject - the message information to send
+        text : str - the text to sends
 
         Example:
         >>> logger = LoggerDiscord()
@@ -261,10 +266,23 @@ class LoggerDiscord(AsyncLoggerTemplate):
         assert self.thread_ is not None, "Thread is not created"
         
         # kwargs contains message_object
-        assert "message_object" in kwargs, "message_object is not in kwargs"
-        message_object : MessageObject = kwargs["message_object"]
+        if "message_object" in kwargs:
+            message_object : MessageObject = kwargs["message_object"]
+        else:
+            message_object = MessageObject()
+        if "text" in kwargs:
+            text : str = kwargs["text"]
+        else:
+            text = ""
         assert isinstance(message_object, MessageObject), "message_object is not a MessageObject"
-        await self.thread_.send(message_object.message_, embed=message_object.embed_, file=message_object.file_) # type: ignore
+        assert isinstance(text, str), "text is not a string"
+
+        if not message_object.EmptyMessage: # type: ignore
+            await self.thread_.send(message_object.message_, embed=message_object.embed_, file=message_object.file_) # type: ignore
+        else:
+            message_object.SetMessage(text)
+            await self.thread_.send(message_object.message_, embed=message_object.embed_, file=message_object.file_)
+
 
     async def Close(self) -> None:
         """

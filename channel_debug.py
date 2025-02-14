@@ -1,8 +1,15 @@
 from discord import Message
 from enum import Enum, auto, unique
-from classes.discord_lib import MessageObject
+from threading import Thread
+
+from anomalib_train import RunModelAsync
 from channel_template import ChannelMessageTemplate, CommandObject
+from classes.discord_lib import MessageObject
 from classes.util_lib import Unused
+from classes.channel_enum import ChannelEnum, CHANNEL_KEYWORD
+from classes.log_lib import LoggerDiscord
+from classes.anomalib_lib import AnomalyModelUnit
+from classes.general_lib import AsyncThread
 
 @unique
 class CommandEnum(Enum):
@@ -19,6 +26,7 @@ class CommandEnum(Enum):
     help_ = auto()
     test_ = auto()
     prev_ = auto()
+    train_ = auto()
 
 # class ChannelMessageDebug(ChannelMessageTemplate):
 #     """
@@ -56,6 +64,8 @@ async def ResDebug(message : Message, message_object : MessageObject) -> None:
     message_object.EmbedSetImage(url="attachment://test.jpg")
 
 CHANNEL_MESSAGE_DEBUG : ChannelMessageTemplate = ChannelMessageTemplate()
+SHARE_LOGGER : LoggerDiscord = LoggerDiscord()
+
 async def ResHelp(message : Message, message_object : MessageObject) -> None:
     """
     This is used for the help of the system
@@ -69,14 +79,54 @@ async def ResTest(message : Message, message_object : MessageObject) -> None:
     """
     This is used for the test of the system
     """
-    message_object.SetMessage("Debug : " + message.content)
-    assert CHANNEL_MESSAGE_DEBUG.channel_object_ is not None
+    message_object.SetMessage(f"Thread : {SHARE_LOGGER.thread_}")
+
+async def ResTrain(message : Message, message_object : MessageObject) -> None:
+    """
+    This is used for the train of the system
+    """
+    message_object.SetMessage("Train : " + message.content)
+    assert CHANNEL_MESSAGE_DEBUG.channel_object_dict_ is not None, "channel_object_dict is None"
+    assert ChannelEnum.log_ in CHANNEL_MESSAGE_DEBUG.channel_object_dict_, "log_ is not in channel_object_dict"
+
+    await SHARE_LOGGER.Setup(webhook_link=CHANNEL_MESSAGE_DEBUG.channel_object_dict_[ChannelEnum.log_].webhook_url_, name=f"{CHANNEL_KEYWORD}train {message.content}")
+
+    model_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.dfkde_
+
+    # Create a thread to run the model
+    # thread = Thread(target=AsyncThread, kwargs={"func" : RunModelAsync, "model_type_flag" : model_flag, "logger_instance_async" : SHARE_LOGGER, "name" : " ".join(message.content[1:].split(" ")[1:])})
+    # thread.start()
+    await RunModelAsync(model_type_flag=model_flag, logger_instance_async=SHARE_LOGGER, name=" ".join(message.content[1:].split(" ")[1:]))
+    
+    message_object.SetMessage("Train : " + message.content + "started")
+
 
 def Setup() -> None:
     """
     Setup the ChannelMessageTemplate
     """
-    CHANNEL_MESSAGE_DEBUG.RegisterCommand(command_enum=CommandEnum.help_, command_object=CommandObject(name="help", description="Help Command", function=ResHelp))
-    CHANNEL_MESSAGE_DEBUG.RegisterCommand(command_enum=CommandEnum.test_, command_object=CommandObject(name="test", description="Test Command", function=ResTest))
-    CHANNEL_MESSAGE_DEBUG.RegisterCommand(command_enum=CommandEnum.prev_, command_object=CommandObject(name="prev", description="Prev Command", function=ResDebug))
+    CHANNEL_MESSAGE_DEBUG.RegisterCommand(
+        command_enum=CommandEnum.help_, 
+        command_object=CommandObject(
+            name="help", 
+            description="Help Command", 
+            function=ResHelp))
+    CHANNEL_MESSAGE_DEBUG.RegisterCommand(
+        command_enum=CommandEnum.test_, 
+        command_object=CommandObject(
+            name="test", 
+            description="Test Command", 
+            function=ResTest))
+    CHANNEL_MESSAGE_DEBUG.RegisterCommand(
+        command_enum=CommandEnum.prev_, 
+        command_object=CommandObject(
+            name="prev", 
+            description="Prev Command", 
+            function=ResDebug))
+    CHANNEL_MESSAGE_DEBUG.RegisterCommand(
+        command_enum=CommandEnum.train_, 
+        command_object=CommandObject(
+            name="train", 
+            description="Train Command", 
+            function=ResTrain))
     CHANNEL_MESSAGE_DEBUG.SetupCommand()

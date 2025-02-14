@@ -3,6 +3,7 @@ from discord import Message
 from enum import Enum, auto, unique
 from classes.discord_lib import MessageObject
 from classes.message_lib import ChannelObject
+from classes.channel_enum import ChannelEnum
 
 @unique
 class CommandEnum(Enum):
@@ -59,11 +60,12 @@ class ChannelMessageTemplate():
     Attributes:
     command_object_dict_ : dict[Enum, CommandObject] - The dictionary containing the command objects.
     command_name_dict_ : dict[str, Enum] - The dictionary containing the command names.
+    channel_object_dict_ : Optional[dict[Enum, ChannelObject]] - The dictionary containing the channel objects.
 
     Methods:
     RegisterCommand : Register the command for the ChannelMessageTemplate.
     SetupCommand : Setup the command for the ChannelMessageTemplate.
-    ImportChannelObject : Import the ChannelObject for the ChannelMessageTemplate
+    ImportChannelObjectDict : Import the ChannelObject for the ChannelMessageTemplate
     RunFunc : Run the function for the ChannelMessageTemplate.
     ResMessage : Template for responding Messages
 
@@ -84,7 +86,7 @@ class ChannelMessageTemplate():
         """
         self.command_object_dict_ : dict[Enum, CommandObject] = {}
         self.command_name_dict_ : dict[str, Enum] = {}
-        self.channel_object_ : Optional[ChannelObject] = None
+        self.channel_object_dict_ : Optional[dict[Enum, ChannelObject]] = None
 
 
     def RegisterCommand(self, command_enum : Enum, command_object : CommandObject) -> None:
@@ -118,19 +120,19 @@ class ChannelMessageTemplate():
             self.command_name_dict_[command_object.name_] = command_enum
         print(f"{self.__class__.__name__} Setup Done")
 
-    def ImportChannelObject(self, channel_object : ChannelObject) -> None:
+    def ImportChannelObjectDict(self, channel_object_dict : dict[Enum, ChannelObject]) -> None:
         """
-        Import the ChannelObject for the ChannelMessageTemplate.
+        Import the ChannelObject for the ChannelMessageTemplate
 
         Args:
-        channel_object : ChannelObject - The ChannelObject for the channel.
+        channel_object_dict : dict[Enum, ChannelObject] - The dictionary containing the channel objects.
 
         Example:
-        >>> channel_object = ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_LOG", webhook_url="", func=channel_log.CHANNEL_MESSAGE_LOG.ResMessage, password=0)
+        >>> channel_object_dict = {}
         >>> channel_message_template = ChannelMessageTemplate()
-        >>> channel_message_template.ImportChannelObject(channel_object=channel_object)
+        >>> channel_message_template.ImportChannelObjectDict(channel_object_dict=channel_object_dict)
         """
-        self.channel_object_ = channel_object
+        self.channel_object_dict_ = channel_object_dict
 
     async def RunFunc(self, *, func : Callable[[Message, MessageObject], None], message : Message, message_object : MessageObject) -> None:
         """
@@ -156,7 +158,7 @@ class ChannelMessageTemplate():
         """
         Template for responding Messages
         """
-        content : str = message.content[1:]
+        content : str = message.content[1:].split(" ")[0]
         if content in self.command_name_dict_:
             await self.RunFunc(func=self.command_object_dict_[self.command_name_dict_[content]].function_, message=message, message_object=message_object)
         else:
@@ -183,6 +185,16 @@ def Setup() -> None:
     """
     Setup the ChannelMessageTemplate
     """
-    CHANNEL_MESSAGE_TEMPLATE.RegisterCommand(command_enum=CommandEnum.help_, command_object=CommandObject(name="help", description="Help Command", function=ResHelp))
-    CHANNEL_MESSAGE_TEMPLATE.RegisterCommand(command_enum=CommandEnum.test_, command_object=CommandObject(name="test", description="Test Command", function=ResTest))
+    CHANNEL_MESSAGE_TEMPLATE.RegisterCommand(
+        command_enum=CommandEnum.help_, 
+        command_object=CommandObject(
+            name="help", 
+            description="Help Command", 
+            function=ResHelp))
+    CHANNEL_MESSAGE_TEMPLATE.RegisterCommand(
+        command_enum=CommandEnum.test_, 
+        command_object=CommandObject(
+            name="test", 
+            description="Test Command", 
+            function=ResTest))
     CHANNEL_MESSAGE_TEMPLATE.SetupCommand()

@@ -1,5 +1,42 @@
+from typing import Dict, Type, TypeVar, Callable
+from asyncio import run
 from classes.util_lib import Size
 from classes.dataset_lib import ImageUnit
+
+T = TypeVar("T", bound="Base")
+
+def Singleton(cls: Type[T]) -> Type[T]:
+    """
+    Singleton decorator ensuring each class has its own unique instance.
+
+    Args:
+        cls (Type[T]): The class to be made singleton.
+
+    Returns:
+        Type[T]: The singleton class.
+    """
+    instances: Dict[Type[T], T] = {}
+
+    class SingletonWrapper(cls):  # Inherit from cls to keep methods
+        def __new__(subcls, *args, **kwargs):  
+            if subcls not in instances:
+                instance = super().__new__(subcls)  # Create new instance
+                instances[subcls] = instance
+            return instances[subcls]
+
+        def __init__(self, *args, **kwargs):
+            """ Ensure __init__ is only called once per class instance """
+            if not hasattr(self, "_initialized"):
+                super().__init__(*args, **kwargs)
+                self._initialized = True  # Mark as initialized
+
+    return SingletonWrapper  # Return modified class
+
+def AsyncThread(func : Callable, *args, **kwargs) -> None:
+    """
+    Run the async function in a new thread
+    """
+    run(func(*args, **kwargs))
 
 class PredictPathObject:
     """

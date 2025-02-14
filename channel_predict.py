@@ -3,6 +3,7 @@ from enum import Enum, auto, unique
 from classes.discord_lib import MessageObject
 from channel_template import ChannelMessageTemplate, CommandObject
 from classes.util_lib import Unused
+from classes.channel_enum import ChannelEnum
 
 @unique
 class CommandEnum(Enum):
@@ -78,7 +79,22 @@ def Setup() -> None:
     """
     Setup the ChannelMessageTemplate
     """
-    CHANNEL_MESSAGE_PREDICT.RegisterCommand(command_enum=CommandEnum.help_, command_object=CommandObject(name="help", description="Help Command", function=ResHelp))
-    CHANNEL_MESSAGE_PREDICT.RegisterCommand(command_enum=CommandEnum.test_, command_object=CommandObject(name="test", description="Test Command", function=ResTest))
-    CHANNEL_MESSAGE_PREDICT.RegisterCommand(command_enum=CommandEnum.prev_, command_object=CommandObject(name="prev", description="Prev Command", function=ResPredict))
+    CHANNEL_MESSAGE_PREDICT.RegisterCommand(
+        command_enum=CommandEnum.help_, 
+        command_object=CommandObject(
+            name="help", 
+            description="Help Command", 
+            function=ResHelp))
+    CHANNEL_MESSAGE_PREDICT.RegisterCommand(
+        command_enum=CommandEnum.test_, 
+        command_object=CommandObject(
+            name="test", 
+            description="Test Command", 
+            function=ResTest))
+    CHANNEL_MESSAGE_PREDICT.RegisterCommand(
+        command_enum=CommandEnum.prev_, 
+        command_object=CommandObject(
+            name="prev", 
+            description="Prev Command", 
+            function=ResPredict))
     CHANNEL_MESSAGE_PREDICT.SetupCommand()

@@ -1,8 +1,8 @@
 from typing import Callable, Any
-from enum import Enum, unique, auto
-from classes.discord_lib import MessageObject
+from enum import Enum
 from discord import Message, Webhook
 from aiohttp import ClientSession
+from classes.discord_lib import MessageObject
 
 INIT_PHRASE : str = "ginie"
 

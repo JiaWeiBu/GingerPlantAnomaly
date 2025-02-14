@@ -5,37 +5,22 @@ register the channels and send the message to the bot
 and manage the callback functions for the bot
 """
 
-from typing import Any
 from os import getenv
-from enum import Enum, auto, unique
 from dotenv import load_dotenv
 from random import randint
 from discord import Message
 from classes.discord_lib import MessageObject
 from classes.message_lib import MessageUnit, INIT_PHRASE, WebhookSend, ChannelObject
+from classes.channel_enum import ChannelEnum, CHANNEL_KEYWORD
 import channel_debug
 import channel_predict
 import channel_log
 
 load_dotenv()
-MESSAGE_UNIT = MessageUnit(keyword="~")
+MESSAGE_UNIT = MessageUnit(keyword=CHANNEL_KEYWORD)
 channel_debug.Setup()
 channel_predict.Setup()
 channel_log.Setup()
-
-@unique
-class ChannelEnum(Enum):
-    """
-    Enum class for the channel IDs
-
-    Attributes:
-    - log_: Log channel ID
-    - predict_: Prediction channel ID, user sends images and message to be answered
-    - debug_: Debug channel ID for train or debug purposes
-    """
-    log_ = auto()
-    predict_ = auto()
-    debug_ = auto()
 
 def RegisterChannelConfig() -> None:
     """
@@ -45,9 +30,9 @@ def RegisterChannelConfig() -> None:
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.predict_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_PREDICT", webhook_url="", func=channel_predict.CHANNEL_MESSAGE_PREDICT.ResMessage, password=0))
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.debug_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_DEBUG", webhook_url="", func=channel_debug.CHANNEL_MESSAGE_DEBUG.ResMessage, password=0))
 
-    channel_debug.CHANNEL_MESSAGE_DEBUG.ImportChannelObject(channel_object=MESSAGE_UNIT.channel_object_dict_[ChannelEnum.debug_])
-    channel_predict.CHANNEL_MESSAGE_PREDICT.ImportChannelObject(channel_object=MESSAGE_UNIT.channel_object_dict_[ChannelEnum.predict_])
-    channel_log.CHANNEL_MESSAGE_LOG.ImportChannelObject(channel_object=MESSAGE_UNIT.channel_object_dict_[ChannelEnum.log_])
+    channel_debug.CHANNEL_MESSAGE_DEBUG.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
+    channel_predict.CHANNEL_MESSAGE_PREDICT.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
+    channel_log.CHANNEL_MESSAGE_LOG.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
 
 async def SendMessage(message: Message) -> None:
     response : MessageObject = await MESSAGE_UNIT.GetResponse(message)
