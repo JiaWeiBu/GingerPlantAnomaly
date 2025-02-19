@@ -1,5 +1,5 @@
 from typing import Dict, Type, TypeVar, Callable
-from asyncio import run
+from asyncio import run_coroutine_threadsafe, AbstractEventLoop, set_event_loop
 from classes.util_lib import Size
 from classes.dataset_lib import ImageUnit
 
@@ -31,12 +31,6 @@ def Singleton(cls: Type[T]) -> Type[T]:
                 self._initialized = True  # Mark as initialized
 
     return SingletonWrapper  # Return modified class
-
-def AsyncThread(func : Callable, *args, **kwargs) -> None:
-    """
-    Run the async function in a new thread
-    """
-    run(func(*args, **kwargs))
 
 class PredictPathObject:
     """

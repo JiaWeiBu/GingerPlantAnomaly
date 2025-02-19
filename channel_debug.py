@@ -1,6 +1,5 @@
 from discord import Message
 from enum import Enum, auto, unique
-from threading import Thread
 
 from anomalib_train import RunModelAsync
 from channel_template import ChannelMessageTemplate, CommandObject
@@ -9,7 +8,6 @@ from classes.util_lib import Unused
 from classes.channel_enum import ChannelEnum, CHANNEL_KEYWORD
 from classes.log_lib import LoggerDiscord
 from classes.anomalib_lib import AnomalyModelUnit
-from classes.general_lib import AsyncThread
 
 @unique
 class CommandEnum(Enum):
@@ -88,18 +86,11 @@ async def ResTrain(message : Message, message_object : MessageObject) -> None:
     message_object.SetMessage("Train : " + message.content)
     assert CHANNEL_MESSAGE_DEBUG.channel_object_dict_ is not None, "channel_object_dict is None"
     assert ChannelEnum.log_ in CHANNEL_MESSAGE_DEBUG.channel_object_dict_, "log_ is not in channel_object_dict"
+    content : str = " ".join(message.content.split(" ")[1:])
 
-    await SHARE_LOGGER.Setup(webhook_link=CHANNEL_MESSAGE_DEBUG.channel_object_dict_[ChannelEnum.log_].webhook_url_, name=f"{CHANNEL_KEYWORD}train {message.content}")
+    await SHARE_LOGGER.Setup(webhook_link=CHANNEL_MESSAGE_DEBUG.channel_object_dict_[ChannelEnum.log_].webhook_url_, name=f"{CHANNEL_KEYWORD}train {content}")
 
-    model_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.dfkde_
-
-    # Create a thread to run the model
-    # thread = Thread(target=AsyncThread, kwargs={"func" : RunModelAsync, "model_type_flag" : model_flag, "logger_instance_async" : SHARE_LOGGER, "name" : " ".join(message.content[1:].split(" ")[1:])})
-    # thread.start()
-    await RunModelAsync(model_type_flag=model_flag, logger_instance_async=SHARE_LOGGER, name=" ".join(message.content[1:].split(" ")[1:]))
-    
-    message_object.SetMessage("Train : " + message.content + "started")
-
+    message_object.SetMessage(f"Train : {content} started")
 
 def Setup() -> None:
     """

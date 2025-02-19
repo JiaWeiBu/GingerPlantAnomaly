@@ -1,4 +1,5 @@
 from typing import Callable, Any
+from sys import stderr
 from enum import Enum
 from discord import Message, Webhook
 from aiohttp import ClientSession
@@ -7,7 +8,7 @@ from classes.discord_lib import MessageObject
 INIT_PHRASE : str = "ginie"
 
 # Webhook 
-async def WebhookSend(webhook_url : str, *, content: str) -> None:
+async def WebhookSend(webhook_url : str, *, message_object: MessageObject) -> None:
     """
     Sends a message to the webhook URL.
 
@@ -18,8 +19,22 @@ async def WebhookSend(webhook_url : str, *, content: str) -> None:
     Example:
     >>> await WebhookSend("https://discord.com/api/webhooks/123456789", content="Hello World")
     """
-    async with ClientSession() as session:
-        await Webhook.from_url(webhook_url, session=session).send(content=content)
+    conv_dict : dict[str, Any] = {}
+
+    if message_object.message_ is not None:
+        conv_dict["content"] = message_object.message_
+    if message_object.embed_ is not None:
+        conv_dict["embed"] = message_object.embed_
+    if message_object.file_ is not None:
+        conv_dict["file"] = message_object.file_
+
+    try:
+        async with ClientSession() as session:
+            await Webhook.from_url(webhook_url, session=session).send(**conv_dict)# type: ignore
+    except Exception as e:
+        print(f"Error: {e}", file=stderr)
+
+
 
 class ChannelObject:
     """

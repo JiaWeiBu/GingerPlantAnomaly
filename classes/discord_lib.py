@@ -16,6 +16,7 @@ class MessageObject:
 
     Methods:
     - EmptyMessage: Check if the message object is empty
+    - ClearMessage: Clear the message object
     
     Setters:
     - SetMessage: Set the message for the message object
@@ -149,6 +150,21 @@ class MessageObject:
         if self.message_ is None and self.embed_ is None and self.file_ is None:
             toggle = True
         return toggle
+
+    def ClearMessage(self) -> None:
+        """
+        Clear the message object
+
+        Example:
+        >>> message_object_ = MessageObject()
+        >>> message_object_.SetMessage("Hello World")
+        >>> discord_message : str = message_object_.GetMessage()
+        >>> message_object_.ClearMessage()
+        >>> discord_message : str = message_object_.GetMessage()
+        """
+        self.embed_ = None
+        self.message_ = None
+        self.file_ = None
 
     # Setters
     def SetMessage(self, message: str) -> None:

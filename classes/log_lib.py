@@ -6,7 +6,6 @@
 # - Use of classes
 # - able to add new implementations
 from typing import Optional
-from enum import Enum, auto
 from discord import Thread, Message
 from classes.message_lib import WebhookSend
 from classes.discord_lib import MessageObject
@@ -218,7 +217,9 @@ class LoggerDiscord(AsyncLoggerTemplate):
         >>> logger = LoggerDiscord()
         >>> await logger.Setup(webhook_link="https://discord.com/api/webhooks/...")
         """
-        await WebhookSend(webhook_url=webhook_link, content=name)
+        messsage_object = MessageObject()
+        messsage_object.SetMessage(name)
+        await WebhookSend(webhook_url=webhook_link, message_object=messsage_object)
     
     async def Open(self, **kwargs) -> None:
         """
@@ -270,19 +271,10 @@ class LoggerDiscord(AsyncLoggerTemplate):
             message_object : MessageObject = kwargs["message_object"]
         else:
             message_object = MessageObject()
-        if "text" in kwargs:
-            text : str = kwargs["text"]
-        else:
-            text = ""
         assert isinstance(message_object, MessageObject), "message_object is not a MessageObject"
-        assert isinstance(text, str), "text is not a string"
 
-        if not message_object.EmptyMessage: # type: ignore
+        if not message_object.EmptyMessage(): # type: ignore
             await self.thread_.send(message_object.message_, embed=message_object.embed_, file=message_object.file_) # type: ignore
-        else:
-            message_object.SetMessage(text)
-            await self.thread_.send(message_object.message_, embed=message_object.embed_, file=message_object.file_)
-
 
     async def Close(self) -> None:
         """
@@ -295,3 +287,71 @@ class LoggerDiscord(AsyncLoggerTemplate):
         >>> await logger.Close()
         """
         self.thread_ = None
+
+@Singleton
+class LoggerWebhook(AsyncLoggerTemplate):
+    """
+    The LogggerWebhook class is used to create a webhook logger.
+
+    Decorators:
+    Singleton : create a single instance of the class
+
+    Attributes:
+    webhook_link_ : str - the discord webhook link
+    message_object_ : MessageObject - the message object
+    clone_cmd_ : str - the clone command
+    close_cmd_ : str - the close command
+    
+    Methods:
+    Open : open the webhook
+    Output : output the text
+    Close : close the webhook
+
+    Example:
+    >>> logger = LogggerWebhook()
+    >>> await logger.Open(webhook_link="https://discord.com/api/webhooks/...")
+    >>> await logger.Output(text="Hello World")
+    >>> await logger.Close()
+    """
+    def __init__(self, webhook_link : str, clone_cmd : str, close_cmd : str) -> None:
+        self.webhook_link_ : str = webhook_link
+        self.clone_cmd_ : str = clone_cmd
+        self.close_cmd_ : str = close_cmd
+        self.message_object_ : MessageObject = MessageObject()
+
+    async def Open(self, **kwargs) -> None:
+        ...
+
+    async def Output(self, **kwargs) -> None:
+        """
+        Send a message to the webhook
+
+        Args:
+        message_object : MessageObject - the message information to send
+
+        Example:
+        >>> logger = LogggerWebhook()
+        >>> await logger.Output(text="Hello World")
+        """
+        assert "message_object" in kwargs, "message_object is not in kwargs"
+        self.message_object_ = kwargs["message_object"]
+        assert isinstance(self.message_object_, MessageObject), "message_object is not a MessageObject"
+
+        self.message_object_.SetMessage(f"{self.clone_cmd_} : {self.message_object_.message_}")
+
+        if not self.message_object_.EmptyMessage():
+            await WebhookSend(webhook_url=self.webhook_link_, message_object=self.message_object_)
+        self.message_object_.ClearMessage()
+
+    async def Close(self) -> None:
+        """
+        Close the webhook
+
+        Example:
+        >>> logger = LogggerWebhook()
+        >>> await logger.Output(text="Hello World")
+        >>> await logger.Close()
+        """
+        self.message_object_.SetMessage(self.close_cmd_)
+        await WebhookSend(webhook_url=self.webhook_link_, message_object=self.message_object_)
+        self.message_object_.ClearMessage()

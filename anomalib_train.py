@@ -7,7 +7,8 @@ from classes.dataset_lib import ImageUnit
 from classes.util_lib import Size
 from classes.anomalib_lib import AnomalyModelUnit
 from classes.dataset_lib import DatasetUnit
-from classes.log_lib import LoggerTemplate, AsyncLoggerTemplate, LoggerDiscord
+from classes.log_lib import LoggerTemplate, AsyncLoggerTemplate, LoggerWebhook
+from classes.discord_lib import MessageObject
 
 class AnomalibTrain:
     """
@@ -52,6 +53,7 @@ class AnomalibTrain:
         self.logger_async_ : bool = logger_async
         self.logger_instance_ : Optional[LoggerTemplate] = logger_instance
         self.logger_instance_async_ : Optional[AsyncLoggerTemplate] = logger_instance_async
+        self.message_object_ : MessageObject = MessageObject()
 
     def LoadData(self) -> None:
         """
@@ -93,7 +95,9 @@ class AnomalibTrain:
         """
         assert self.logger_async_ == True, "LoadDataAsync is not async"
         assert self.logger_instance_async_ is not None, "Logger instance is not set"
-        await self.logger_instance_async_.Output(text="Loading Data")
+        self.message_object_.SetMessage("Loading Data")
+        await self.logger_instance_async_.Output(message_object=self.message_object_)
+        self.message_object_.ClearMessage()
 
         self.dataset_unit_.AnomalibLoadFolder(
             root_path=self.param_.path_.root_, 
@@ -107,7 +111,9 @@ class AnomalibTrain:
             task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_.value)
         self.dataset_unit_.AnomalibDatasetValidation()
 
-        await self.logger_instance_async_.Output(text="Data Loaded")
+        self.message_object_.SetMessage("Data Loaded")
+        await self.logger_instance_async_.Output(message_object=self.message_object_)
+        self.message_object_.ClearMessage()
 
     def TrainTestSequence(self, *, model_type : AnomalyModelUnit.ModelTypeFlag) -> Any:
         """
@@ -154,19 +160,21 @@ class AnomalibTrain:
 
         for model_type in self.model_type_flag_:
             try:
-                self.logger_instance_.Output(text=f"Training {self.param_.name_} on {model_type.value} model")
+                self.logger_instance_.Output(text=f"Training {self.param_.name_} on {model_type.name} model")
                 result = self.TrainTestSequence(model_type=model_type)
                 self.logger_instance_.Output(text=f"Result")
                 for key, value in result[0].items():
                     self.logger_instance_.Output(text=f"{key}: {value}")
             except Exception as e:
-                self.logger_instance_.Output(text=f"Error training for {self.param_.name_} on {model_type.value} model: {e}")
+                self.logger_instance_.Output(text=f"Error training for {self.param_.name_} on {model_type.name} model: {e}")
             continue
         self.logger_instance_.Close()
 
     async def RunAsync(self) -> None:
         """
         Run the training sequence asynchronously.
+
+        NOTE : Only for LoggerWebhook
 
         Example:
         >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
@@ -181,13 +189,26 @@ class AnomalibTrain:
 
         for model_type in self.model_type_flag_:
             try:
-                await self.logger_instance_async_.Output(text=f"Training {self.param_.name_} on {model_type.value} model")
+                # Output before training
+                self.message_object_.SetMessage(f"Training {self.param_.name_} on {model_type.name} model")
+                await self.logger_instance_async_.Output(message_object=self.message_object_)
+                self.message_object_.ClearMessage()
+
+                # Train the model
                 result = self.TrainTestSequence(model_type=model_type)
-                await self.logger_instance_async_.Output(text=f"Result")
+
+                # Output after training
+                self.message_object_.SetMessage(f"Training Result")
+                temp : str = ""
                 for key, value in result[0].items():
-                    await self.logger_instance_async_.Output(text=f"{key}: {value}")
+                    temp += f"{key}: {value}\n"
+                self.message_object_.CreateEmbed(title=f'{model_type.name} Model', description=temp)
+                await self.logger_instance_async_.Output(message_object=self.message_object_)
+                self.message_object_.ClearMessage()
             except Exception as e:
-                await self.logger_instance_async_.Output(text=f"Error training for {self.param_.name_} on {model_type.value} model: {e}")
+                self.message_object_.SetMessage(f"Error training for {self.param_.name_} on {model_type.name} model: {e}")
+                await self.logger_instance_async_.Output(message_object=self.message_object_)
+                self.message_object_.ClearMessage()
             continue
         await self.logger_instance_async_.Close()
 
@@ -235,10 +256,10 @@ async def RunModelAsync(model_type_flag : AnomalyModelUnit.ModelTypeFlag, logger
     """
     train_object : TrainObject = TrainObject(
         path=TrainPathObject(
-            root='datasets/re_plant', 
-            train=['train/60', 'train/top'], 
-            test_good=['good/60', 'good/top'], 
-            test_defective=['bad/60', "bad/top"], 
+            root='datasets/temp', 
+            train=['train'], 
+            test_good=['good'], 
+            test_defective=['bad'], 
             model_save='models'
         ), 
         name=name, 
@@ -246,18 +267,15 @@ async def RunModelAsync(model_type_flag : AnomalyModelUnit.ModelTypeFlag, logger
         colour_mode=ImageUnit.ColorModeEnum.rgb_
     )
     if logger_instance_async is None:
-        anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=True, logger_instance=None, logger_instance_async=AsyncLoggerTemplate())
+        #anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=True, logger_instance=None, logger_instance_async=AsyncLoggerTemplate()) # not implemented
+        print("Not Implemented")
+        return
     else:
-        if type(logger_instance_async) == LoggerDiscord:
-            assert isinstance(logger_instance_async, LoggerDiscord), "logger_instance_async is not LoggerDiscord"
-            for retry in range(1,4):
-                if logger_instance_async.thread_ is not None:
-                    await logger_instance_async.Output(text=f"Thread retry {retry}")
-                    break
-                else:
-                    await sleep(1)
+        if type(logger_instance_async) == LoggerWebhook:
+            assert isinstance(logger_instance_async, LoggerWebhook), "logger_instance_async is not LoggerDiscord"
+           
 
-        anomalib_train = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=True, logger_instance=None, logger_instance_async=logger_instance_async)
+    anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=True, logger_instance=None, logger_instance_async=logger_instance_async)
     await anomalib_train.RunAsync()
 
 def main():
@@ -282,3 +300,16 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+async def RunWithLoop() -> None:
+    # try:
+    #     loop = get_running_loop()
+    #     loop.create_task(TestingCode())
+    # except RuntimeError:
+    #     print("Runtime Error", file=stderr)
+    #     loop = new_event_loop()
+    #     set_event_loop(loop)
+    #     loop.run_until_complete(TestingCode())
+    await TestingCode()

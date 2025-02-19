@@ -1,6 +1,7 @@
 from discord import Message
 from enum import Enum, auto, unique
 from dotenv import load_dotenv
+from requests import Response, get
 from classes.discord_lib import MessageObject
 from channel_template import ChannelMessageTemplate, CommandObject
 from classes.util_lib import Unused
@@ -90,7 +91,12 @@ async def ResTrain(message : Message, message_object : MessageObject) -> None:
     # else:
     #     for a in range(5):
     #         await message.thread.send(f"Train {a}")
-    await SHARE_LOGGER.Open(message=message, name=f"{message.content} Thread", duration=1440)
+    await SHARE_LOGGER.Open(message=message, name=f'{" ".join(message.content.split(" ")[1:])} Thread', duration=1440)
+
+    # send to flask to train the model
+    get(f"http://127.0.0.1:5000/train")
+
+    message_object.SetMessage(f"Succesfully started training: {' '.join(message.content.split(' ')[1:])}")
 
 def Setup() -> None:
     """
@@ -111,7 +117,7 @@ def Setup() -> None:
     CHANNEL_MESSAGE_LOG.RegisterCommand(
         command_enum=CommandEnum.prev_, 
         command_object=CommandObject(
-            name="prev", 
+            name="prev",  
             description="Prev Command", 
             function=ResLog))
     CHANNEL_MESSAGE_LOG.RegisterCommand(

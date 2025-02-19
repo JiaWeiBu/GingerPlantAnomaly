@@ -15,3 +15,4 @@ class ChannelEnum(Enum):
     log_ = auto()
     predict_ = auto()
     debug_ = auto()
+    clone_ = auto()

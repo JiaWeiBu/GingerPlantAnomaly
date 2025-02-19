@@ -15,12 +15,14 @@ from classes.channel_enum import ChannelEnum, CHANNEL_KEYWORD
 import channel_debug
 import channel_predict
 import channel_log
+import channel_clone
 
 load_dotenv()
 MESSAGE_UNIT = MessageUnit(keyword=CHANNEL_KEYWORD)
 channel_debug.Setup()
 channel_predict.Setup()
 channel_log.Setup()
+channel_clone.Setup()
 
 def RegisterChannelConfig() -> None:
     """
@@ -29,10 +31,12 @@ def RegisterChannelConfig() -> None:
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.log_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_LOG", webhook_url="", func=channel_log.CHANNEL_MESSAGE_LOG.ResMessage, password=0))
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.predict_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_PREDICT", webhook_url="", func=channel_predict.CHANNEL_MESSAGE_PREDICT.ResMessage, password=0))
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.debug_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_DEBUG", webhook_url="", func=channel_debug.CHANNEL_MESSAGE_DEBUG.ResMessage, password=0))
+    MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.clone_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_CLONE", webhook_url="", func=channel_clone.CHANNEL_MESSAGE_CLONE.ResMessage, password=0))
 
     channel_debug.CHANNEL_MESSAGE_DEBUG.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
     channel_predict.CHANNEL_MESSAGE_PREDICT.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
     channel_log.CHANNEL_MESSAGE_LOG.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
+    channel_clone.CHANNEL_MESSAGE_CLONE.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
 
 async def SendMessage(message: Message) -> None:
     response : MessageObject = await MESSAGE_UNIT.GetResponse(message)
@@ -51,17 +55,10 @@ async def RegisterChannel() -> None:
         
         # Set the passcode for the channel
         MESSAGE_UNIT.SetChannelPass(channel=channel, pass_=randint(10000000, 99999999))
-
+        
+        message_object = MessageObject()
+        message_object.SetMessage(f"{MESSAGE_UNIT.keyword_}{INIT_PHRASE} {MESSAGE_UNIT.channel_object_dict_[channel].pass_}")
         # Send the passcode to the channel
-        await WebhookSend(webhook_url=MESSAGE_UNIT.channel_object_dict_[channel].webhook_url_, content=f"{MESSAGE_UNIT.keyword_}{INIT_PHRASE} {MESSAGE_UNIT.channel_object_dict_[channel].pass_}")
+        await WebhookSend(webhook_url=MESSAGE_UNIT.channel_object_dict_[channel].webhook_url_, message_object=message_object)
     
     print(f"Init Configurations are done")
-
-async def LogSend(message: str) -> None:
-    """
-    Function to send the log message
-
-    Args:
-    - message : str - The message to be sent
-    """
-    await WebhookSend(webhook_url=MESSAGE_UNIT.channel_object_dict_[ChannelEnum.log_].webhook_url_, content=message)
