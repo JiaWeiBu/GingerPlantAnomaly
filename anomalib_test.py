@@ -1,70 +1,138 @@
-# run testing on all model
-# model location in models/data_type/model_type/weights/torch/model.pt
-
-from typing import Any
-import torch
-from numpy import asarray
-import torchvision.transforms as transforms
-from pandas import DataFrame
+from os.path import exists
+from os import makedirs
+from typing import Any, Optional
 from classes.dataset_lib import DatasetUnit, ImageUnit
 from classes.util_lib import Size
 from classes.anomalib_lib import AnomalyModelUnit
-
 from anomalib.deploy.inferencers import TorchInferencer
-from matplotlib import pyplot as plt
 from anomalib.utils.visualization.image import ImageResult
+from classes.log_lib import LoggerTemplate, AsyncLoggerTemplate, LoggerWebhook
+from classes.discord_lib import MessageObject
 
-DATASET_PATH = "./datasets"
+class AnomalibTest:
+    """
+    The AnomalibTest class is used to test the model for the Anomalib library.
 
-def LoadMVTecData(*, dataset_type: DatasetUnit.MVTecDatasetTypeEnum, size: Size[int], config : bool = False, colour_mode : ImageUnit.ColorModeEnum = ImageUnit.ColorModeEnum.grayscale_) -> tuple[Any, Any]:
-    if config:
-        print("Loading Data")
+    Attributes:
+    param_ : TestObject - The TestObject containing the parameters for testing the model.
+    logger_async_ : bool - Indicates if the logger is asynchronous.
+    logger_instance_ : Optional[LoggerTemplate] - Synchronous logger instance.
+    logger_instance_async_ : Optional[AsyncLoggerTemplate] - Asynchronous logger instance.
+    """
 
-    test_good_module = DatasetUnit()
-    test_good_module.LoadImagesResize2D(f"{DATASET_PATH}/{dataset_type.value}/test/good", colour_mode, size)
+    def __init__(self, *, param: DatasetUnit, logger_async: bool, logger_instance: Optional[LoggerTemplate], logger_instance_async: Optional[AsyncLoggerTemplate]) -> None:
+        """
+        Initialize the AnomalibTest class.
 
-    test_defective_module = DatasetUnit()
-    for anomaly in DatasetUnit.MVTecDataset[dataset_type]:
-        test_defective_module.LoadImagesResize2D(f"{DATASET_PATH}/{dataset_type.value}/test/{anomaly.value}", colour_mode, size)
+        Args:
+        param : DatasetUnit - The DatasetUnit containing the test dataset.
+        logger_async : bool - Indicates if the logger is asynchronous.
+        logger_instance : Optional[LoggerTemplate] - Synchronous logger instance.
+        logger_instance_async : Optional[AsyncLoggerTemplate] - Asynchronous logger instance.
+        """
+        self.param_ = param
+        self.logger_async_ = logger_async
+        self.logger_instance_ = logger_instance
+        self.logger_instance_async_ = logger_instance_async
+        self.message_object_ = MessageObject()
 
-    # test_good = DataFrame(test_good_module.images_)
-    # test_defective = DataFrame(test_defective_module.images_)
+    def Evaluate(self, *, model_path: str) -> None:
+        """
+        Evaluate the model on the test data.
 
-    # print("Test Good Shape: ", test_good.shape)
-    # print("Test Defective Shape: ", test_defective.shape)
-    test_good = test_good_module.images_
-    test_defective = test_defective_module.images_
+        Args:
+        model_path : str - Path to the trained model.
 
-    if config:
-        print("Data Loaded")
+        Example:
+        >>> test_unit = DatasetUnit()
+        >>> anomalib_test = AnomalibTest(param=test_unit, logger_async=False, logger_instance=LoggerTemplate(), logger_instance_async=None)
+        >>> anomalib_test.Evaluate(model_path="models/model.pt")
+        """
+        assert self.logger_instance_ is not None, "Logger instance is not set"
+        self.logger_instance_.Output(text=f"Evaluating model at {model_path}")
 
-    return test_good, test_defective
+        inferencer = TorchInferencer(path=model_path)
+        for image in self.param_.images_:
+            result: ImageResult = inferencer.predict(image)
+            self.logger_instance_.Output(text=f"Prediction: {result.pred_label}")
 
+        self.logger_instance_.Output(text="Evaluation Complete")
+
+    async def EvaluateAsync(self, *, model_path: str) -> None:
+        """
+        Evaluate the model on the test data asynchronously.
+
+        Args:
+        model_path : str - Path to the trained model.
+
+        Example:
+        >>> test_unit = DatasetUnit()
+        >>> anomalib_test = AnomalibTest(param=test_unit, logger_async=True, logger_instance=None, logger_instance_async=AsyncLoggerTemplate())
+        >>> await anomalib_test.EvaluateAsync(model_path="models/model.pt")
+        """
+        assert self.logger_instance_async_ is not None, "Logger instance is not set"
+        self.message_object_.SetMessage(f"Evaluating model at {model_path}")
+        await self.logger_instance_async_.Output(message_object=self.message_object_)
+        self.message_object_.ClearMessage()
+
+        inferencer = TorchInferencer(path=model_path)
+        for image in self.param_.images_:
+            result: ImageResult = inferencer.predict(image)
+            self.message_object_.SetMessage(f"Prediction: {result.pred_label}")
+            await self.logger_instance_async_.Output(message_object=self.message_object_)
+            self.message_object_.ClearMessage()
+
+        self.message_object_.SetMessage("Evaluation Complete")
+        await self.logger_instance_async_.Output(message_object=self.message_object_)
+        self.message_object_.ClearMessage()
+
+    def Run(self, *, model_path: str) -> None:
+        """
+        Run the testing sequence.
+
+        Args:
+        model_path : str - Path to the trained model.
+
+        Example:
+        >>> test_unit = DatasetUnit()
+        >>> anomalib_test = AnomalibTest(param=test_unit, logger_async=False, logger_instance=LoggerTemplate(), logger_instance_async=None)
+        >>> anomalib_test.Run(model_path="models/model.pt")
+        """
+        assert self.logger_async_ == False, "Run is not async"
+        assert self.logger_instance_ is not None, "Logger instance is not set"
+
+        self.LoadData()
+        self.Evaluate(model_path=model_path)
+
+    async def RunAsync(self, *, model_path: str) -> None:
+        """
+        Run the testing sequence asynchronously.
+
+        Args:
+        model_path : str - Path to the trained model.
+
+        Example:
+        >>> test_unit = DatasetUnit()
+        >>> anomalib_test = AnomalibTest(param=test_unit, logger_async=True, logger_instance=None, logger_instance_async=AsyncLoggerTemplate())
+        >>> await anomalib_test.RunAsync(model_path="models/model.pt")
+        """
+        assert self.logger_async_ == True, "RunAsync is not async"
+        assert self.logger_instance_async_ is not None, "Logger instance is not set"
+
+        await self.LoadDataAsync()
+        await self.EvaluateAsync(model_path=model_path)
 
 def main():
-    transform_ = transforms.Compose([
-        transforms.ToTensor()
-    ])
+    """
+    Run the testing sequence directly from this file.
+    """
+    test_unit = DatasetUnit()
+    anomalib_test = AnomalibTest(
+        param=test_unit,unit   loggerunit   sync=False,
+        logger_instance=LoggerTemplate(),
+        logger_instance_async=None
+    )
+    anomalib_test.Run(model_path="models/model.pt")
 
-
-    anomaly_model_unit = AnomalyModelUnit()
-    for dataset_type in DatasetUnit.MVTecDatasetTypeEnum:
-        print(f"Loading {dataset_type.value}")
-        print(f"Loaded {dataset_type.value}")
-
-        for model_type in AnomalyModelUnit.AnomalyModelTypeEnum:
-            # Test the model
-            if anomaly_model_unit.ModelValid(model_type=model_type):
-                inferencers = TorchInferencer(path=f"models/{dataset_type.value}/{model_type.name}/weights/torch/model.pt")
-                print(f"Testing {dataset_type.value} with {model_type.name}")
-
-                result : ImageResult = inferencers.predict("./datasets/bottle/test/broken_large/000.png")
-                print(result.pred_label)
-              
-
-
-                print("k")
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

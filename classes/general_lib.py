@@ -56,6 +56,29 @@ class PredictPathObject:
         self.model_ : str = model
         self.test_good_ : str = test_good
         self.test_defective_ : str = test_defective
+
+class ImageInfoObject:
+    """
+    Image information object
+
+    Attributes:
+    size_ : Size[int] - size of image
+    colour_mode_ : ImageUnit.ColorModeEnum - colour mode of image
+    name_ : str - name of the image
+
+    Example:
+    >>> img_info = ImageInfoObject(Size(100, 100), ImageUnit.ColorModeEnum.rgb_, "image_name")
+    >>> img_info.size_
+    Size(100, 100)
+    >>> img_info.colour_mode_
+    ImageUnit.ColorModeEnum.rgb_
+    >>> img_info.name_
+    "image_name"
+    """
+    def __init__(self, size : Size[int], colour_mode : ImageUnit.ColorModeEnum, name : str) -> None:
+        self.size_ : Size[int] = size
+        self.colour_mode_ : ImageUnit.ColorModeEnum = colour_mode
+        self.name_ : str = name
      
 class TrainPathObject:
     """
@@ -91,21 +114,64 @@ class TrainObject:
 
     Attributes:
     path_ : TrainPathObject - path object for training
-    colour_mode_ : ImageUnit.ColorModeEnum - colour mode for training
-    size_ : Size[int] - size of image for training
-    name_ : str - name of the training project
+    image_info_ : ImageInfoObject - image information object for training
 
     Example:
-    >>> train = TrainObject(TrainPathObject("root", "train", "test_good", "test_defective", "model_save"), ImageUnit.ColorModeEnum.rgb_, Size(100, 100), "train")
+    >>> train = TrainObject(TrainPathObject("root", "train", "test_good", "test_defective", "model_save"), ImageInfoObject(Size(100, 100), ImageUnit.ColorModeEnum.rgb_, "image_name"))
     >>> train.path_
     "train"
-    >>> train.colour_mode_
+    >>> train.image_info_.colour_mode_
     ImageUnit.ColorModeEnum.rgb_
-    >>> train.size_
+    >>> train.image_info_.size_
     Size(100, 100)
+    >>> train.image_info_.name_
+    "image_name"
     """
-    def __init__(self, path : TrainPathObject, colour_mode : ImageUnit.ColorModeEnum, size : Size[int], name : str) -> None:
+    def __init__(self, path : TrainPathObject, image_info : ImageInfoObject) -> None:
         self.path_ : TrainPathObject = path
-        self.colour_mode_ : ImageUnit.ColorModeEnum = colour_mode
-        self.size_ : Size[int] = size
-        self.name_ : str = name
+        self.image_info_ : ImageInfoObject = image_info
+
+class TestPathObject:
+    """
+    Path object for testing
+
+    Attributes:
+    root_ : str - root path for testing
+    test_good_ : list[str] - path to good test data
+    test_defective_ : list[str] - path to defective test data
+
+    Example:
+    >>> path = TestPathObject("root", "test_good", "test_defective")
+    >>> path.test_good_
+    "test_good"
+    >>> path.test_defective_
+    "test_defective"
+    """
+    def __init__(self, root : str, test_good : list[str], test_defective : list[str], test_mask : list[str]) -> None:
+        self.root_ : str = root
+        self.test_good_ : list[str] = test_good
+        self.test_defective_ : list[str] = test_defective
+        self.test_mask_ : list[str] = test_mask
+
+class TestObject:
+    """
+    Test object for testing
+
+    Attributes:
+    path_ : TestPathObject - path object for testing
+    image_info_ : ImageInfoObject - image information object for testing
+
+    Example:
+    >>> test = TestObject(TestPathObject("root", "test_good", "test_defective", "test_mask"), ImageInfoObject(Size(100, 100), ImageUnit.ColorModeEnum.rgb_, "test"))
+    >>> test.path_
+    "test"
+    >>> test.image_info_.colour_mode_
+    ImageUnit.ColorModeEnum.rgb_
+    >>> test.image_info_.size_
+    Size(100, 100)
+    >>> test.image_info_.name_
+    "test"
+    """
+    def __init__(self, path : TestPathObject, image_info: ImageInfoObject) -> None:
+        self.path_ : TestPathObject = path
+        self.image_info_ : ImageInfoObject = image_info

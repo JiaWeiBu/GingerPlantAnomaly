@@ -131,25 +131,25 @@ class AnomalyModelUnit:
 
     VALID_MODELS_DICT: Final[dict[ModelTypeFlag, bool]] = {
         ModelTypeFlag.ai_vad_ : False,
-        ModelTypeFlag.cfa_ : False,
-        ModelTypeFlag.cflow_ : False,
-        ModelTypeFlag.csflow_ : False,
+        ModelTypeFlag.cfa_ : True,
+        ModelTypeFlag.cflow_ : True,
+        ModelTypeFlag.csflow_ : True,
         ModelTypeFlag.draem_ : True,
         ModelTypeFlag.dfkde_ : True,
-        ModelTypeFlag.dfm_ : False,
-        ModelTypeFlag.dsr_ : False,
-        ModelTypeFlag.efficient_ad_ : False,
+        ModelTypeFlag.dfm_ : True,
+        ModelTypeFlag.dsr_ : True,
+        ModelTypeFlag.efficient_ad_ : True,
         ModelTypeFlag.fastflow_ : True,
-        ModelTypeFlag.fre_ : False,
+        ModelTypeFlag.fre_ : True,
         ModelTypeFlag.ganomaly_ : True,
         ModelTypeFlag.padim_ : True,
         ModelTypeFlag.patchcore_ : True,
         ModelTypeFlag.reverse_distillation_ : True,
-        ModelTypeFlag.rkde_ : False,
+        ModelTypeFlag.rkde_ : True,
         ModelTypeFlag.stfpm_ : True,
-        ModelTypeFlag.uflow_ : False,
+        ModelTypeFlag.uflow_ : True,
         ModelTypeFlag.vlm_ad_ : False,
-        ModelTypeFlag.win_clip_ : False
+        ModelTypeFlag.win_clip_ : True
 
         # # set all models to True
         # ModelTypeFlag.ai_vad_ : False,
@@ -439,9 +439,9 @@ class AnomalyModelUnit:
         early_stopping_callback = EarlyStopping(
             monitor="generator_loss_step" if self.model_type_ in [AnomalyModelUnit.ModelTypeFlag.ganomaly_] else "train_loss_step",
             #monitor="AUROC",
-            patience=3,
+            patience=10,
             mode="min",
-            min_delta=0.005,
+            min_delta=0.01,
             verbose=True,
         )
 
@@ -450,7 +450,7 @@ class AnomalyModelUnit:
             threshold="F1AdaptiveThreshold",
             task=self.task_.value,
             image_metrics=self.image_metrics_,
-            max_epochs=70,
+            max_epochs=300,
             callbacks=[] if self.model_type_ in [AnomalyModelUnit.ModelTypeFlag.dfkde_, AnomalyModelUnit.ModelTypeFlag.padim_, AnomalyModelUnit.ModelTypeFlag.patchcore_, AnomalyModelUnit.ModelTypeFlag.cfa_] else [early_stopping_callback],
             #callbacks=[early_stopping_callback],
             accelerator="auto",
@@ -477,19 +477,27 @@ class AnomalyModelUnit:
         return test_result
 
     #@TimeIt
-    def Predict(self, data : Folder) -> Any:
+    def Predict(self, data: Folder) -> Any:
         """
-        Predict anomalies in the dataset.
+        Predict anomalies in the given dataset.
+
+        This method requires a trained model or imported weights. 
+        For exported models saved using the `Save` method, use the Anomalib Inferencer for predictions.
+        Refer to the Anomalib documentation: 
+        https://anomalib.readthedocs.io/en/stable/markdown/guides/reference/deploy/
 
         Args:
-            data : Folder : Dataset for predicting anomalies.
-        
+            data (Folder): Dataset to predict anomalies on.
+
         Returns:
-            Any : Predicted anomalies in the dataset.
-        
-        Example:
-        >>> model = AnomalyModelUnit()
-        >>> model.Predict(data=test)
+            Any: Predicted anomalies in the dataset.
+
+        Examples:
+            Predict anomalies using a trained model:
+            >>> from anomalib.data.image.folder import Folder
+            >>> model = AnomalyModelUnit()
+            >>> test_data = Folder(path="path/to/test/data")
+            >>> predictions = model.Predict(data=test_data)
         """
         assert isinstance(self.model_, AnomalyModule), "Model is not valid."
         assert isinstance(self.engine_, Engine), "Engine is not valid."
@@ -526,6 +534,9 @@ class AnomalyModelUnit:
         >>> model.ModelValid(model_type=AnomalyModelType.ganomaly_)
         """
         return self.VALID_MODELS_DICT[model_type]
+    
+    # Deployment model
+    
 
 
 

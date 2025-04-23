@@ -1,8 +1,7 @@
 from os.path import exists
 from os import makedirs
 from typing import Any, Optional
-from asyncio import sleep
-from classes.general_lib import TrainObject, TrainPathObject#, PredictPathObject
+from classes.general_lib import TrainObject, TrainPathObject, ImageInfoObject
 from classes.dataset_lib import ImageUnit
 from classes.util_lib import Size
 from classes.anomalib_lib import AnomalyModelUnit
@@ -21,7 +20,7 @@ class AnomalibTrain:
     dataset_unit_ : DatasetUnit - The DatasetUnit object.
 
     Example:
-    >>> param = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+    >>> param = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
     >>> model_type_flag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
     >>> anomalib_train = AnomalibTrain(param = param, model_type_flag = model_type_flag)
     """
@@ -42,7 +41,7 @@ class AnomalibTrain:
         model_type_flag_ : AnomalyModelUnit.ModelTypeFlag - The model type flag for the AnomalyModelUnit.
 
         Example:
-        >>> param = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> param = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
         >>> model_type_flag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
         >>> anomalib_train = AnomalibTrain(param = param, model_type_flag = model_type_flag)
         """
@@ -60,7 +59,7 @@ class AnomalibTrain:
         Load the data for training the model.
 
         Example:
-        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
         >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
         >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
         >>> anomalib_train.LoadData()
@@ -76,8 +75,8 @@ class AnomalibTrain:
             abnormal_path=self.param_.path_.test_defective_, 
             normal_split_ratio=0.0, 
             test_split_ratio=0.0, 
-            datalib_name=self.param_.name_, 
-            size=self.param_.size_, 
+            datalib_name=self.param_.image_info_.name_,
+            size=self.param_.image_info_.size_,
             task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_.value)
         self.dataset_unit_.AnomalibDatasetValidation()
 
@@ -88,7 +87,7 @@ class AnomalibTrain:
         Load the data for training the model asynchronously.
 
         Example:
-        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
         >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
         >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
         >>> await anomalib_train.LoadDataAsync()
@@ -106,8 +105,8 @@ class AnomalibTrain:
             abnormal_path=self.param_.path_.test_defective_, 
             normal_split_ratio=0.0, 
             test_split_ratio=0.0, 
-            datalib_name=self.param_.name_, 
-            size=self.param_.size_, 
+            datalib_name=self.param_.image_info_.name_, 
+            size=self.param_.image_info_.size_, 
             task=AnomalyModelUnit.AnomalibTaskTypeEnum.classification_.value)
         self.dataset_unit_.AnomalibDatasetValidation()
 
@@ -126,7 +125,7 @@ class AnomalibTrain:
         Any - The result of the evaluation.
 
         Example:
-        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
         >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
         >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
         >>> anomalib_train.LoadData()
@@ -136,6 +135,9 @@ class AnomalibTrain:
         assert self.dataset_unit_.folder_ is not None, "Dataset not loaded"
         anomaly_model.Train(datamodule=self.dataset_unit_.folder_)
         result = anomaly_model.Evaluate(datamodule=self.dataset_unit_.folder_)
+        
+        # Save the model
+        anomaly_model.Save(f"{self.param_.path_.model_save_}/{self.param_.image_info_.name_}/{model_type.name}")
 
         if not exists(self.param_.path_.model_save_):
             makedirs(self.param_.path_.model_save_)
@@ -148,7 +150,7 @@ class AnomalibTrain:
         Run the training sequence.
 
         Example:
-        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
         >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
         >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
         >>> anomalib_train.Run()
@@ -160,13 +162,13 @@ class AnomalibTrain:
 
         for model_type in self.model_type_flag_:
             try:
-                self.logger_instance_.Output(text=f"Training {self.param_.name_} on {model_type.name} model")
+                self.logger_instance_.Output(text=f"Training {self.param_.image_info_.name_} on {model_type.name} model")
                 result = self.TrainTestSequence(model_type=model_type)
                 self.logger_instance_.Output(text=f"Result")
                 for key, value in result[0].items():
                     self.logger_instance_.Output(text=f"{key}: {value}")
             except Exception as e:
-                self.logger_instance_.Output(text=f"Error training for {self.param_.name_} on {model_type.name} model: {e}")
+                self.logger_instance_.Output(text=f"Error training for {self.param_.image_info_.name_} on {model_type.name} model: {e}")
             continue
         self.logger_instance_.Close()
 
@@ -177,7 +179,7 @@ class AnomalibTrain:
         NOTE : Only for LoggerWebhook
 
         Example:
-        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), name_='dataset_name', size_=Size(width=256, height=256))
+        >>> param : TrainObject = TrainObject(path_=TrainPathObject(root_='root_path', train_='train_path', test_good_='test_good_path', test_defective_='test_defective_path', model_save_='model_save_path'), image_info=ImageInfoObject(size=Size(width=256, height=256), colour_mode=ImageUnit.ColorModeEnum.rgb_, name='dataset_name'))
         >>> model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
         >>> anomalib_train : AnomalibTrain = AnomalibTrain(param=param, model_type_flag=model_type_flag)
         >>> await anomalib_train.RunAsync()
@@ -190,7 +192,7 @@ class AnomalibTrain:
         for model_type in self.model_type_flag_:
             try:
                 # Output before training
-                self.message_object_.SetMessage(f"Training {self.param_.name_} on {model_type.name} model")
+                self.message_object_.SetMessage(f"Training {self.param_.image_info_.name_} on {model_type.name} model")
                 await self.logger_instance_async_.Output(message_object=self.message_object_)
                 self.message_object_.ClearMessage()
 
@@ -206,7 +208,7 @@ class AnomalibTrain:
                 await self.logger_instance_async_.Output(message_object=self.message_object_)
                 self.message_object_.ClearMessage()
             except Exception as e:
-                self.message_object_.SetMessage(f"Error training for {self.param_.name_} on {model_type.name} model: {e}")
+                self.message_object_.SetMessage(f"Error training for {self.param_.image_info_.name_} on {model_type.name} model: {e}")
                 await self.logger_instance_async_.Output(message_object=self.message_object_)
                 self.message_object_.ClearMessage()
             continue
@@ -237,9 +239,11 @@ def RunModel(model_type_flag : AnomalyModelUnit.ModelTypeFlag, logger_instance :
             test_defective=['bad/60', "bad/top"], 
             model_save='models'
         ), 
-        name=name, 
-        size=Size(width=256, height=256), 
-        colour_mode=ImageUnit.ColorModeEnum.rgb_
+        image_info=ImageInfoObject(
+            size=Size(width=384, height=384),
+            colour_mode=ImageUnit.ColorModeEnum.rgb_,
+            name=name
+        )
     )
     if logger_instance is None:
         anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=False, logger_instance=LoggerTemplate(), logger_instance_async=None)
@@ -262,9 +266,11 @@ async def RunModelAsync(model_type_flag : AnomalyModelUnit.ModelTypeFlag, logger
             test_defective=['bad'], 
             model_save='models'
         ), 
-        name=name, 
-        size=Size(width=256, height=256), 
-        colour_mode=ImageUnit.ColorModeEnum.rgb_
+        image_info=ImageInfoObject(
+            size=Size(width=256, height=256),
+            colour_mode=ImageUnit.ColorModeEnum.rgb_,
+            name=name
+        )
     )
     if logger_instance_async is None:
         #anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=True, logger_instance=None, logger_instance_async=AsyncLoggerTemplate()) # not implemented
@@ -290,9 +296,11 @@ def main():
             test_defective=['bad/60', "bad/top"], 
             model_save='models'
         ), 
-        name='plant_test_run', 
-        size=Size(width=256, height=256), 
-        colour_mode=ImageUnit.ColorModeEnum.rgb_
+        image_info=ImageInfoObject(
+            size=Size(width=256, height=256),
+            colour_mode=ImageUnit.ColorModeEnum.rgb_,
+            name='plant_test_run'
+        )
     )
     model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_# | AnomalyModelUnit.ModelTypeFlag.patchcore_    
     anomalib_train : AnomalibTrain = AnomalibTrain(param=train_object, model_type_flag=model_type_flag, logger_async=False, logger_instance=LoggerTemplate(), logger_instance_async=None)
@@ -300,16 +308,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-async def RunWithLoop() -> None:
-    # try:
-    #     loop = get_running_loop()
-    #     loop.create_task(TestingCode())
-    # except RuntimeError:
-    #     print("Runtime Error", file=stderr)
-    #     loop = new_event_loop()
-    #     set_event_loop(loop)
-    #     loop.run_until_complete(TestingCode())
-    await TestingCode()

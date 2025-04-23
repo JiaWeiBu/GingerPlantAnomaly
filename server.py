@@ -54,7 +54,7 @@ async def RunTrainAsync() -> None:
 
     logger_instance : LoggerWebhook = LoggerWebhook(webhook_link=link, clone_cmd="~clone", close_cmd="~close")
 
-    await RunModelAsync(model_type_flag=model_type_flag, logger_instance_async=logger_instance, name="Resize BGRM")
+    await RunModelAsync(model_type_flag=model_type_flag, logger_instance_async=logger_instance, name="T5_Full_Individual_Filtered_Week_Unseen_Week3_Save_SimMutiAnomaly")
 
    
 @Get 
