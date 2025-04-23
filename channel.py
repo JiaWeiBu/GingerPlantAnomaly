@@ -28,11 +28,13 @@ def RegisterChannelConfig() -> None:
     """
     Function to register the channels
     """
+    # Register the channels
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.log_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_LOG", webhook_url="", func=channel_log.CHANNEL_MESSAGE_LOG.ResMessage, password=0))
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.predict_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_PREDICT", webhook_url="", func=channel_predict.CHANNEL_MESSAGE_PREDICT.ResMessage, password=0))
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.debug_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_DEBUG", webhook_url="", func=channel_debug.CHANNEL_MESSAGE_DEBUG.ResMessage, password=0))
     MESSAGE_UNIT.RegisterChannelObject(channel=ChannelEnum.clone_, channel_object=ChannelObject(ids=0, webhook_env="CHANNEL_WEBHOOK_CLONE", webhook_url="", func=channel_clone.CHANNEL_MESSAGE_CLONE.ResMessage, password=0))
 
+    # Reverse by returning the channel object to their respective channels
     channel_debug.CHANNEL_MESSAGE_DEBUG.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
     channel_predict.CHANNEL_MESSAGE_PREDICT.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)
     channel_log.CHANNEL_MESSAGE_LOG.ImportChannelObjectDict(channel_object_dict=MESSAGE_UNIT.channel_object_dict_)

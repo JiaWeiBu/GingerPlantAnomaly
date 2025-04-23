@@ -8,12 +8,16 @@
 
 from os import getenv
 from dotenv import load_dotenv
-from asyncio import create_task, sleep, new_event_loop, set_event_loop
+from asyncio import new_event_loop, set_event_loop
 from threading import Thread
 from sys import stderr
+from flask import request, Response
+from PIL import Image
+from io import BytesIO
+from base64 import b64encode
 
 from anomalib_train import RunModelAsync
-from classes.flask_lib import Get, APP
+from classes.flask_lib import Get, APP, Post
 from classes.discord_lib import MessageObject
 from classes.message_lib import WebhookSend
 from classes.anomalib_lib import AnomalyModelUnit
@@ -95,6 +99,50 @@ async def Train() -> str:
 
     return "Training"
 
+@Post
+async def Predict() -> Response:
+    """
+    Handle the POST request to predict anomalies from multiple images and return multiple messages and images as a response.
+    """
+    if 'images' not in request.files:
+        return {"error": "No image files provided"}, 400
+
+    # Retrieve the image files from the request
+    image_files = request.files.getlist('images')
+
+    response_messages = []
+    response_images = []
+
+    try:
+        for image_file in image_files:
+            # Open the image using PIL
+            image = Image.open(image_file.stream)
+
+            # Perform prediction logic here
+            # For demonstration, we'll just convert the image to grayscale
+            grayscale_image = image.convert("L")
+
+            # Save the processed image to an in-memory buffer
+            image_buffer = BytesIO()
+            grayscale_image.save(image_buffer, format="PNG")
+            image_buffer.seek(0)
+
+            # Encode the image as Base64
+            image_base64 = b64encode(image_buffer.getvalue()).decode('utf-8')
+
+            # Add a success message and the processed image to the response
+            response_messages.append(f"Prediction successful for {image_file.filename}")
+            response_images.append(image_base64)
+
+        # Return text and images in JSON
+        return {
+            "messages": response_messages,
+            "images": response_images
+        }, 200
+
+    except Exception as e:
+        return {"error": f"Error processing images: {str(e)}"}, 500
+
 def flask_run():
     APP.run()
     
@@ -103,4 +151,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    

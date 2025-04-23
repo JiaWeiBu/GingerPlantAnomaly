@@ -1,6 +1,7 @@
 from os.path import exists
 from os import makedirs
 from typing import Any, Optional
+from enum import Enum, unique, auto
 from classes.dataset_lib import DatasetUnit, ImageUnit
 from classes.util_lib import Size
 from classes.anomalib_lib import AnomalyModelUnit
@@ -8,6 +9,69 @@ from anomalib.deploy.inferencers import TorchInferencer
 from anomalib.utils.visualization.image import ImageResult
 from classes.log_lib import LoggerTemplate, AsyncLoggerTemplate, LoggerWebhook
 from classes.discord_lib import MessageObject
+
+class ModelPathUnit:
+
+    @unique
+    class ModelTypeEnum(Enum):
+        """
+        Enum for model paths.
+
+        Attributes:
+        cflow_ : str - Path to the cflow model.
+        fastflow_ : str - Path to the fastflow model.
+        patchcore_ : str - Path to the patchcore model.
+        reversedistillation_ : str - Path to the reversedistillation model.
+        stpm_ : str - Path to the stpm model.
+        """
+        cflow_ = auto()
+        fastflow_ = auto()
+        patchcore_ = auto()
+        reverse_distillation_ = auto()
+        stpm_ = auto()
+
+
+
+    @unique
+    class ModelWeekEnum(Enum):
+        """
+        Enum for model weeks.
+
+        Attributes:
+        week3_ : str - Path to the week 3 model.
+        week8_ : str - Path to the week 8 model.
+        week12_ : str - Path to the week 12 model.
+        week18_ : str - Path to the week 18 model.
+        """
+        week3_ = auto()
+        week8_ = auto()
+        week12_ = auto()
+        week18_ = auto()
+    
+    def __init__(self) -> None:
+        """
+        Initialize the ModelPathUnit class.
+        """
+        self.model_week_dict_: dict[ModelPathUnit.ModelWeekEnum, str] = {
+            ModelPathUnit.ModelWeekEnum.week3_: "3",
+            ModelPathUnit.ModelWeekEnum.week8_: "8",
+            ModelPathUnit.ModelWeekEnum.week12_: "12",
+            ModelPathUnit.ModelWeekEnum.week18_: "18",
+        }
+
+
+    def ModelPath(self, type: ModelTypeEnum, week: ModelWeekEnum) -> str:
+        """
+        Get the model path.
+
+        Args:
+        type : ModelTypeEnum - The type of the model.
+        week : ModelWeekEnum - The week of the model.
+
+        Returns:
+        str - The model path.
+        """
+        return f"models/T5_Full_Individual_Filtered_Week_Unseen_Week{week.value}_Save_SimMutiAnomaly/{type.name}/weights/torch/model.pt"
 
 class AnomalibTest:
     """
@@ -30,12 +94,12 @@ class AnomalibTest:
         logger_instance : Optional[LoggerTemplate] - Synchronous logger instance.
         logger_instance_async : Optional[AsyncLoggerTemplate] - Asynchronous logger instance.
         """
-        self.param_ = param
-        self.logger_async_ = logger_async
-        self.logger_instance_ = logger_instance
-        self.logger_instance_async_ = logger_instance_async
-        self.message_object_ = MessageObject()
-
+        self.param_: DatasetUnit = param
+        self.logger_async_: bool = logger_async
+        self.logger_instance_: Optional[LoggerTemplate] = logger_instance
+        self.logger_instance_async_: Optional[AsyncLoggerTemplate] = logger_instance_async
+        self.message_object_: MessageObject = MessageObject()
+    
     def Evaluate(self, *, model_path: str) -> None:
         """
         Evaluate the model on the test data.

@@ -17,6 +17,7 @@ class CallbackFunctionRoute(Enum):
     Index = "/"
     Test = "/test"
     Train = "/train"
+    Predict = "/predict"
 
 # dict[function_name, route]
 CALLBACK_FUNCTION_ROUTE : dict[str, str] = {i.name : i.value for i in CallbackFunctionRoute}

@@ -112,6 +112,7 @@ class MessageUnit:
     - RunFunc: Runs the function for the given message.
     - GetResponse: Gets the response for the given message.
     - InitRoutine: Initializes the system by setting the channel ID based on the password created using your own OTP.
+    - DeleteMessage: Deletes the message from the channel.
 
     Example:
     >>> @unique
@@ -291,14 +292,32 @@ class MessageUnit:
                 try:
                     if int(content[1]) == channel_object.pass_:
                         self.SetChannelID(channel=channel, channel_id=message.channel.id)
-                        message_object.SetMessage("Channel ID set")
+                        #message_object.SetMessage("Channel ID set")
+                        await self.DeleteMessage(message=message, delay_seconds=5)
 
                         self.num_channels_init_ -= 1
                         if self.num_channels_init_ == 0:
                             self.ChannelDictInit()
-                            message_object.SetMessage("Channel ID set\nAll channels initialized")
+                            #message_object.SetMessage("Channel ID set\nAll channels initialized")
                 except ValueError:
                     message_object.SetMessage("Invalid pass")
                     break
         else:
             message_object.SetMessage(f"System not initialized yet")
+
+    async def DeleteMessage(self, message : Message, delay_seconds : float = 5) -> None:
+        """
+        Deletes the message after a delay.
+        Args:
+        - message (Message): The message to delete.
+        - delay_seconds (float): The delay in seconds before deleting the message.
+
+        Warning: This function is only used when message_object is empty
+        Example:
+        >>> message_object = MessageObject()
+        >>> if message_object.EmptyMessage():
+        >>>     await message_object.DeleteMessage(message=discord.Message, delay_seconds=5)
+            
+        """
+        
+        await message.delete(delay=delay_seconds)

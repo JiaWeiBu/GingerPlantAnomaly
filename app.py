@@ -33,7 +33,7 @@ async def on_message(message: Message) -> None:
     if message.author == CLIENT.user:
         return
 
-    if message.content[0] != MESSAGE_UNIT.keyword_:
+    if not message.content.startswith(MESSAGE_UNIT.keyword_):
         return
     
     await SendMessage(message)
