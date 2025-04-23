@@ -50,7 +50,38 @@ def RunLoopSync() -> None:
     loop.run_until_complete(RunTrainAsync())
 
 async def RunTrainAsync() -> None:
-    model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.padim_ | AnomalyModelUnit.ModelTypeFlag.dfkde_  | AnomalyModelUnit.ModelTypeFlag.stfpm_ | AnomalyModelUnit.ModelTypeFlag.draem_ | AnomalyModelUnit.ModelTypeFlag.reverse_distillation_ | AnomalyModelUnit.ModelTypeFlag.ganomaly_
+    """
+      ModelTypeFlag.ai_vad_ : False,
+        ModelTypeFlag.cfa_ : True,
+        ModelTypeFlag.cflow_ : True,
+        ModelTypeFlag.csflow_ : True,
+        ModelTypeFlag.draem_ : True,
+        ModelTypeFlag.dfkde_ : True,
+        ModelTypeFlag.dfm_ : True,
+        ModelTypeFlag.dsr_ : True,
+        ModelTypeFlag.efficient_ad_ : True,
+        ModelTypeFlag.fastflow_ : True,
+        ModelTypeFlag.fre_ : True,
+        ModelTypeFlag.ganomaly_ : True,
+        ModelTypeFlag.padim_ : True,
+        ModelTypeFlag.patchcore_ : True,
+        ModelTypeFlag.reverse_distillation_ : True,
+        ModelTypeFlag.rkde_ : True,
+        ModelTypeFlag.stfpm_ : True,
+        ModelTyp~eFlag.uflow_ : True,
+        ModelTypeFlag.vlm_ad_ : False,
+        ModelTypeFlag.win_clip_ : True
+
+
+         I want cflow, fastflow, patchcore, reverse_distillation, stfpm
+    """
+    
+    model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.cflow_ | AnomalyModelUnit.ModelTypeFlag.fastflow_ | AnomalyModelUnit.ModelTypeFlag.patchcore_ | AnomalyModelUnit.ModelTypeFlag.reverse_distillation_ | AnomalyModelUnit.ModelTypeFlag.stfpm_
+    # continue from reverse_distillation_ to stfpm_
+    #model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.reverse_distillation_ | AnomalyModelUnit.ModelTypeFlag.stfpm_
+
+    # inverse for above
+    #model_type_flag : AnomalyModelUnit.ModelTypeFlag = AnomalyModelUnit.ModelTypeFlag.cflow_ | AnomalyModelUnit.ModelTypeFlag.fastflow_ | AnomalyModelUnit.ModelTypeFlag.patchcore_
 
     logger_instance : LoggerWebhook = LoggerWebhook(webhook_link=link, clone_cmd="~clone", close_cmd="~close")
 
