@@ -457,6 +457,24 @@ class DatasetUnit:
         >>> dataset_unit.DirImages("path/to/images")
         """
         return [join(path, f) for f in listdir(path) if isfile(join(path, f))]
+    
+    def LoadImagesName(self, paths: str) -> None:
+        """
+        Load images names from a specified directory and store them in the dataset.
+
+        Args:
+            paths (str): Path to the directory.
+        
+        :example:
+        >>> dataset_unit : DatasetUnit = DatasetUnit()
+        >>> dataset_unit.LoadImagesName("path/to/images")
+        """
+        dir_images : list[str] = self.DirImages(paths)
+        if len(dir_images) == 0:
+            print("No images found in the directory")
+            return
+        self.images_name_ = dir_images
+        print(f"Loaded {len(dir_images)} images from {paths}")
 
     def LoadImages(self, paths: str, color_mode: ImageUnit.ColorModeEnum) -> None:
         """

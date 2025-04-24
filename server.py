@@ -6,17 +6,22 @@
 # - k_constant_variable
 # - FunctionName
 
-from os import getenv
+from os import getenv, makedirs
+from os.path import join, exists
+from shutil import rmtree
+from uuid import uuid4
 from dotenv import load_dotenv
 from asyncio import new_event_loop, set_event_loop
 from threading import Thread
 from sys import stderr
 from flask import request, Response
-from PIL import Image
 from io import BytesIO
 from base64 import b64encode
+from json import dumps  # Add this import for JSON serialization
+
 
 from anomalib_train import RunModelAsync
+from anomalib_test import AnomalibTest, ModelPathUnit
 from classes.flask_lib import Get, APP, Post
 from classes.discord_lib import MessageObject
 from classes.message_lib import WebhookSend
@@ -28,6 +33,8 @@ from classes.log_lib import LoggerWebhook
 # load the environment variables
 load_dotenv()
 link : str = str(getenv('CHANNEL_WEBHOOK_CLONE'))
+anomalib_test : AnomalibTest = AnomalibTest()
+model_path_unit : ModelPathUnit = ModelPathUnit()
 
 # API Function from Server
 @Get
@@ -100,48 +107,110 @@ async def Train() -> str:
     return "Training"
 
 @Post
+async def PredictSetup() -> Response:
+    """
+    Handle the POST request to set up the prediction environment.
+    """
+    # Extract 'week' and 'name' from the request form
+    week = request.form.get('week')
+    name = request.form.get('name')
+
+    if not week or not name:
+        return Response("Both 'week' and 'name' are required.", status=400)
+
+    try:
+        week_int = int(week)  # Convert week to integer
+    except ValueError:
+        return Response("'week' must be an integer.", status=400)
+
+    # Validate the model path using ModelPathUnit.IsValid()
+    valid_result = model_path_unit.IsValid(week=week_int, types=name)
+    if not valid_result:
+        return Response("Invalid model path for the provided 'week' and 'name'.", status=400)
+
+    model_type_enum, model_week_enum = valid_result
+
+    # Run the setup for AnomalibTest
+    anomalib_test.Setup(model_path=model_path_unit.ModelPath(types=model_type_enum, week=model_week_enum))
+
+    return Response("Setup successful", status=200)
+
+@Post
 async def Predict() -> Response:
     """
     Handle the POST request to predict anomalies from multiple images and return multiple messages and images as a response.
     """
     if 'images' not in request.files:
-        return {"error": "No image files provided"}, 400
+        return Response(
+            dumps({
+                "messages": ["No image files provided."],
+                "images": []
+            }),
+            status=400,
+            mimetype="application/json"
+        )
 
     # Retrieve the image files from the request
     image_files = request.files.getlist('images')
+
+    # Create a temporary directory with a random name
+    temp_dir = join("testtest", str(uuid4()))
+    makedirs(temp_dir, exist_ok=True)
 
     response_messages = []
     response_images = []
 
     try:
+        # Save each image to the temporary directory
         for image_file in image_files:
-            # Open the image using PIL
-            image = Image.open(image_file.stream)
+            assert image_file.filename is not None, "Image filename is None"
+            image_path = join(temp_dir, image_file.filename)
+            image_file.save(image_path)
 
-            # Perform prediction logic here
-            # For demonstration, we'll just convert the image to grayscale
-            grayscale_image = image.convert("L")
+        # Evaluate the images using anomalib_test
+        results = anomalib_test.Evaluate(image_path=temp_dir)
 
-            # Save the processed image to an in-memory buffer
+        # Process the results
+        for result_image, result_string in results:
+            # Save the result image as PNG (supports RGBA)
             image_buffer = BytesIO()
-            grayscale_image.save(image_buffer, format="PNG")
+            result_image.save(image_buffer, format="PNG")
             image_buffer.seek(0)
-
-            # Encode the image as Base64
             image_base64 = b64encode(image_buffer.getvalue()).decode('utf-8')
 
-            # Add a success message and the processed image to the response
-            response_messages.append(f"Prediction successful for {image_file.filename}")
+            # Add the result string and image to the response
+            response_messages.append(result_string)
             response_images.append(image_base64)
 
+        # Clean up the temporary directory
+        rmtree(temp_dir, ignore_errors=True)
+
         # Return text and images in JSON
-        return {
-            "messages": response_messages,
-            "images": response_images
-        }, 200
+        return Response(
+            dumps({
+                "messages": response_messages,
+                "images": response_images
+            }),
+            status=200,
+            mimetype="application/json"
+        )
 
     except Exception as e:
-        return {"error": f"Error processing images: {str(e)}"}, 500
+        # Clean up the temporary directory in case of an error
+        rmtree(temp_dir, ignore_errors=True)
+        return Response(
+            dumps({
+                "messages": [f"Error processing images: {str(e)}"],
+                "images": []
+            }),
+            status=500,
+            mimetype="application/json"
+        )
+    
+    finally:
+        # Clean up the temporary directory if it exists
+        if exists(temp_dir):
+            rmtree(temp_dir, ignore_errors=True)
 
 def flask_run():
     APP.run()

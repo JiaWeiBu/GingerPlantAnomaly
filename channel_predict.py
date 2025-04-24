@@ -26,6 +26,7 @@ class CommandEnum(Enum):
     help_ = auto()
     test_ = auto()
     predict_ = auto()
+    setup_ = auto()
 
 CHANNEL_MESSAGE_PREDICT : ChannelMessageTemplate = ChannelMessageTemplate()
 async def ResPredict(message: Message, message_object: MessageObject) -> None:
@@ -46,11 +47,14 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
     form_data = FormData()
     for attachment in message.attachments:
         # Check if the attachment is an image
-        if not attachment.content_type.startswith("image/"):
+        if not attachment.content_type.startswith("image/"): # type: ignore
             continue
 
         file: File = await attachment.to_file()
-        image = open(file.fp)
+        image = open(file.fp)  # type: ignore
+        if not image:
+            message_object.SetMessage("Failed to open the image.")
+            return
 
         # Convert the image to bytes
         image_buffer = BytesIO()
@@ -64,18 +68,47 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
             filename=file.filename,
             content_type=attachment.content_type
         )
+    
+    # Validate if FormData is empty
+    if not form_data._fields:  # _fields contains all the fields added to FormDatapart():
+        message_object.SetMessage("No valid images found in the attachments.")
+        return
 
     # Send all images to the server in one request
     url = "http://127.0.0.1:5000/predict"
     async with ClientSession() as session:
         async with session.post(url, data=form_data) as response:
             if response.status != 200:
-                message_object.SetMessage(f"Error: {response.status}")
+                # Check if the response is JSON
+                if response.content_type == "application/json":
+                    try:
+                        error_result = await response.json()
+                        error_messages = error_result.get("messages", [])
+                        error_detail = "\n".join(error_messages)
+                    except Exception:
+                        error_detail = "Invalid JSON response from server."
+                else:
+                    error_detail = await response.text()  # Fallback to plain text
 
-            # Parse the response
-            result = await response.json()
+                message_object.SetMessage(f"Error {response.status}: {error_detail}")
+                return
+
+            # Check if the response is JSON
+            if response.content_type == "application/json":
+                try:
+                    result = await response.json()
+                except Exception:
+                    message_object.SetMessage("Invalid JSON response from server.")
+                    return
+            else:
+                result = {"messages": [], "images": []}  # Default empty result if not JSON
+
             response_messages = result.get("messages", [])
             images_base64 = result.get("images", [])
+
+            if images_base64 is None or response_messages is None:
+                message_object.SetMessage("No images or messages found in the response.")
+                return
 
             if len(response_messages) == 1 and len(images_base64) == 1:
                 # Single response case
@@ -127,6 +160,54 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
                 if not message_object.EmptyMessage():
                     message_object.ClearMessage()
 
+async def ResSetup(message: Message, message_object: MessageObject) -> None:
+    """
+    This is used for the setup model for predict.
+    """
+    # Extract content and split into words
+    content_parts = message.content.split()
+    if len(content_parts) != 3:
+        message_object.SetMessage("Invalid command format. Use: {command} {model} {week}")
+        return
+
+    command, part1, part2 = content_parts
+
+    # Determine which part is the model and which is the week
+    model = None
+    week = None
+    try:
+        week = int(part1)
+        model = part2
+    except ValueError:
+        try:
+            week = int(part2)
+            model = part1
+        except ValueError:
+            message_object.SetMessage("Invalid format. Ensure one part is a model (string) and the other is a week (integer).")
+            return
+
+    # Prepare the form data for the server
+    form_data = FormData()
+    form_data.add_field("week", str(week))
+    form_data.add_field("name", model)
+
+    # Send the setup request to the server
+    url = "http://127.0.0.1:5000/predict_setup"
+    async with ClientSession() as session:
+        async with session.post(url, data=form_data) as response:
+            if response.status != 200:
+                error_detail = await response.text()  # Await the coroutine
+                message_object.SetMessage(f"Error: {response.status} - {error_detail}")
+                return
+
+            # Check if the response is JSON
+            if response.content_type == "application/json":
+                result = await response.json()
+            else:
+                result = await response.text()
+
+            message_object.SetMessage(f"Setup successful: {result}")
+
 async def ResHelp(message : Message, message_object : MessageObject) -> None:
     """
     This is used for the help of the system
@@ -164,4 +245,10 @@ def Setup() -> None:
             name="predict", 
             description="Predict Command", 
             function=ResPredict))
+    CHANNEL_MESSAGE_PREDICT.RegisterCommand(
+        command_enum=CommandEnum.setup_, 
+        command_object=CommandObject(
+            name="setup", 
+            description="Setup Command", 
+            function=ResSetup))
     CHANNEL_MESSAGE_PREDICT.SetupCommand()

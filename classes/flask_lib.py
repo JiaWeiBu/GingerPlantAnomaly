@@ -18,6 +18,7 @@ class CallbackFunctionRoute(Enum):
     Test = "/test"
     Train = "/train"
     Predict = "/predict"
+    PredictSetup = "/predict_setup"
 
 # dict[function_name, route]
 CALLBACK_FUNCTION_ROUTE : dict[str, str] = {i.name : i.value for i in CallbackFunctionRoute}
