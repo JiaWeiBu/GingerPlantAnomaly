@@ -116,6 +116,27 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
                 processed_image_buffer = BytesIO(base64.b64decode(images_base64[0]))
                 processed_image_buffer.seek(0)
 
+                # Extract the score from the response_message
+                try:
+                    pred_score = float(response_message.split(":")[1].strip())
+                except (IndexError, ValueError):
+                    pred_score = None
+
+                # Determine the anomaly level and set the title and color
+                if pred_score is not None:
+                    if pred_score > 0.75:
+                        title = "Anomaly Detected"
+                        colour = MessageObject.EmbedColourEnum.red_.value
+                    elif pred_score > 0.5:
+                        title = "Potential Anomaly"
+                        colour = MessageObject.EmbedColourEnum.yellow_.value
+                    else:
+                        title = "Normal"
+                        colour = MessageObject.EmbedColourEnum.green_.value
+                else:
+                    title = "Prediction"
+                    colour = MessageObject.EmbedColourEnum.random_.value
+
                 # Set the file in the message object
                 message_object.SetFile(
                     fp=processed_image_buffer,
@@ -125,9 +146,9 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
 
                 # Create an embed with the response
                 message_object.CreateEmbed(
-                    title="Prediction",
+                    title=title,
                     description=response_message,
-                    colour=MessageObject.EmbedColourEnum.random_.value
+                    colour=colour
                 )
 
                 # Attach the image to the embed
@@ -139,6 +160,27 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
                     processed_image_buffer = BytesIO(base64.b64decode(image_base64))
                     processed_image_buffer.seek(0)
 
+                    # Extract the score from the response_message
+                    try:
+                        pred_score = float(response_message.split(":")[1].strip())
+                    except (IndexError, ValueError):
+                        pred_score = None
+
+                    # Determine the anomaly level and set the title and color
+                    if pred_score is not None:
+                        if pred_score > 0.75:
+                            title = "Anomaly Detected"
+                            colour = MessageObject.EmbedColourEnum.red_.value
+                        elif pred_score > 0.5:
+                            title = "Potential Anomaly"
+                            colour = MessageObject.EmbedColourEnum.yellow_.value
+                        else:
+                            title = "Normal"
+                            colour = MessageObject.EmbedColourEnum.green_.value
+                    else:
+                        title = "Prediction"
+                        colour = MessageObject.EmbedColourEnum.random_.value
+
                     # Create a new message object for each response
                     new_message_object = MessageObject()
                     new_message_object.SetFile(
@@ -147,9 +189,9 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
                         description="Processed image"
                     )
                     new_message_object.CreateEmbed(
-                        title="Prediction",
+                        title=title,
                         description=response_message,
-                        colour=MessageObject.EmbedColourEnum.random_.value
+                        colour=colour
                     )
                     new_message_object.EmbedSetImage(url="attachment://processed_image.png")
 
