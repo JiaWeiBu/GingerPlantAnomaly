@@ -15,13 +15,27 @@ An unsupervised ginger plant anomaly detection model.
 - [License](./LICENSE)
 
 ## Introduction
-GingerPlantAnomaly is a general-purpose project designed to address the challenges of image anomaly detection. This project provides a flexible framework that can be adapted to various domains, including industrial inspection, medical imaging, agriculture, and more. By leveraging state-of-the-art libraries such as PyCaret, Anomalib, and Ollama VLM, it offers robust and efficient solutions for detecting anomalies in images.
+GingerPlantAnomaly is a general-purpose project designed to address the challenges of image anomaly detection, with a specific focus on detecting anomalies in ginger plants. Anomalies in ginger plants can include defects such as discoloration, deformities, or other irregularities that may affect their quality. This project aims to provide a robust and efficient solution for identifying such anomalies, which is critical for applications in agriculture, food processing, and quality control.
 
-The project is built with scalability and modularity in mind, allowing users to experiment with different anomaly detection techniques and customize the pipeline to suit their specific needs. Whether you are working with RGB images, grayscale images, or specialized datasets, GingerPlantAnomaly provides the tools to preprocess, train, and evaluate models effectively.
+The project provides a flexible framework that can be adapted to various domains beyond agriculture, including industrial inspection and medical imaging. By leveraging state-of-the-art libraries such as PyCaret, Anomalib, and Ollama VLM, GingerPlantAnomaly offers a modular and scalable approach to anomaly detection. These libraries enable the use of advanced machine learning and deep learning techniques, ensuring high accuracy and reliability in detecting anomalies.
 
-One of the key strengths of this project is its ability to integrate multiple anomaly detection models, such as PaDiM and PatchCore, and compare their performance. Additionally, the inclusion of Ollama VLM enables the exploration of vision-language models for anomaly detection, opening up new possibilities for innovative applications.
+The project primarily focuses on the **Anomalib** library, as it has produced the best results for anomaly detection in ginger plants. Among the models available in Anomalib, the following have been selected for their superior performance:
+- **CFLOW**: Conditional Normalizing Flows 
+- **FASTFLOW**: Fast Flow 
+- **PATCHCORE**: PatchCore 
+- **REVERSE_DISTILLATION**: Reverse Distillation 
+- **STFPM**: Student-Teacher Feature Pyramid Matching 
 
-This repository is designed to be user-friendly, with clear documentation and examples to help users get started quickly. Whether you are a researcher, developer, or practitioner, GingerPlantAnomaly aims to provide a comprehensive solution for your anomaly detection needs.
+These models were chosen based on their ability to handle complex datasets and their effectiveness in identifying subtle anomalies in images. The modular design of the project allows users to experiment with these models and customize the pipeline to suit their specific needs.
+
+In addition to its technical capabilities, GingerPlantAnomaly is designed to be user-friendly. The repository includes clear documentation, example scripts, and a Discord bot UI for managing anomaly detection tasks interactively. This makes it accessible to a wide range of users, from researchers and developers to practitioners in the field.
+
+For example images of ginger plant anomalies and their detection results, refer to the following:
+- [Example Image 1](./images/example1.png)
+- [Example Image 2](./images/example2.png)
+- [Example Image 3](./images/example3.png)
+
+By providing a comprehensive solution for anomaly detection, GingerPlantAnomaly aims to contribute to advancements in quality control and automation across various industries. Whether you are working with agricultural products, industrial components, or medical images, this project offers the tools and flexibility needed to achieve your goals.
 
 ## Features
 ### PyCaret
@@ -49,22 +63,28 @@ This repository is designed to be user-friendly, with clear documentation and ex
 - Supported Models:
   - **AI_VAD**: Accurate and Interpretable Video Anomaly Detection
   - **CFA**: Coupled-hypersphere-based Feature Adaptation
-  - **CFLOW**: Conditional Normalizing Flows
+  - **CFLOW**: Conditional Normalizing Flows 🟢
   - **CSFLOW**: Cross-Scale-Flows
   - **DRÆM**: Discriminatively Trained Reconstruction Anomaly Embedding Model
   - **DFKDE**: Deep Feature Kernel Density Estimation
   - **DFM**: Deep Feature Modelling
-  - **DSR**: Dual Subspace Re-Projection
+  - **DSR**: Dual Subspace Re-Projections
   - **EFFICIENT_AD**: Efficient Anomaly Detection
-  - **FASTFLOW**: Fast Flow
+  - **FASTFLOW**: Fast Flow 🟢
   - **FRE**: Feature Reconstruction Error
   - **GANOMALY**: Generative Adversarial Networks for Anomaly Detection
   - **PADIM**: Patch Distribution Modeling
-  - **PATCHCORE**: PatchCore
-  - **REVERSE_DISTILLATION**: Reverse Distillation
+  - **PATCHCORE**: PatchCore 🟢
+  - **REVERSE_DISTILLATION**: Reverse Distillation 🟢
   - **RKDE**: Region-Based Kernel Density Estimation
-  - **STFPM**: Student-Teacher Feature Pyramid Matching
+  - **STFPM**: Student-Teacher Feature Pyramid Matching 🟢
   - **UFLOW**: U-shaped Normalizing Flow
+  - **VLM_AD**: Visual Language Model for Anomaly Detection
+  - **WIN_CLIP**: Windowed-Based Contrastive Language-Image Pre-training
+- Example Results:
+  - [CFLOW Result](./images/cflow_result.png)
+  - [FASTFLOW Result](./images/fastflow_result.png)
+  - [PATCHCORE Result](./images/patchcore_result.png)
 - **Note**: This project uses version `1.2.0` of Anomalib. The latest version (`2.0.0`) is not compatible with the current implementation.
 
 ### Ollama VLM
