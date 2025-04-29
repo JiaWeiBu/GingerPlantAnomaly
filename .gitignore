@@ -5,10 +5,10 @@
 *.csv
 /datasets
 *.zip
-/results
+/results/*
+!/results/README.md
 *.pt
 *.png
 /runs
 .env
-*.pyc
 *.pyc
