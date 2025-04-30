@@ -5,6 +5,74 @@ from classes.discord_lib import MessageObject
 from classes.message_lib import ChannelObject
 from classes.channel_enum import ChannelEnum
 
+"""
+ChannelMessageTemplate Usage Guide
+----------------------------------
+
+The `ChannelMessageTemplate` class provides a framework for creating and managing Discord bot commands 
+within specific channels. It allows you to register commands, associate them with functions, and handle 
+incoming messages to execute the appropriate command logic.
+
+### Key Components:
+1. **Command Registration**:
+   - Use the `RegisterCommand` method to register a command with a unique `Enum` identifier and a `CommandObject`.
+   - The `CommandObject` contains the command's name, description, and the function to execute.
+
+2. **Command Setup**:
+   - Call the `SetupCommand` method after registering all commands. This maps command names to their respective `Enum` identifiers.
+
+3. **Channel Object Integration**:
+   - Use the `ImportChannelObjectDict` method to associate the template with a dictionary of `ChannelObject` instances. 
+   - This allows the template to access channel-specific configurations.
+
+4. **Message Handling**:
+   - The `ResMessage` method processes incoming messages. It extracts the command name from the message content, 
+     looks up the corresponding function, and executes it.
+
+5. **Function Execution**:
+   - The `RunFunc` method is used internally to execute the function associated with a command. It passes the 
+     `Message` and `MessageObject` instances to the function.
+
+### Example Usage:
+```python
+from channel_template import ChannelMessageTemplate, CommandObject, CommandEnum
+from discord import Message
+from classes.discord_lib import MessageObject
+
+# Define command functions
+async def ResHelp(message: Message, message_object: MessageObject) -> None:
+    message_object.SetMessage("Help Command Executed")
+
+async def ResTest(message: Message, message_object: MessageObject) -> None:
+    message_object.SetMessage("Test Command Executed")
+
+# Create a template instance
+channel_message_template = ChannelMessageTemplate()
+
+# Register commands
+channel_message_template.RegisterCommand(
+    command_enum=CommandEnum.help_,
+    command_object=CommandObject(name="help", description="Help Command", function=ResHelp)
+)
+channel_message_template.RegisterCommand(
+    command_enum=CommandEnum.test_,
+    command_object=CommandObject(name="test", description="Test Command", function=ResTest)
+)
+
+# Setup commands
+channel_message_template.SetupCommand()
+
+# Handle a message (example usage in an event handler)
+async def on_message(message: Message):
+    message_object = MessageObject()
+    await channel_message_template.ResMessage(message=message, message_object=message_object)
+    if not message_object.EmptyMessage():
+        await message.channel.send(message_object.message_)
+```
+
+This template simplifies the process of managing commands and their execution, making it easier to extend and maintain the bot's functionality.
+"""
+
 @unique
 class CommandEnum(Enum):
     """
