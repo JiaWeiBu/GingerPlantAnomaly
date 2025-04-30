@@ -47,14 +47,14 @@ from classes.anomalib_lib import AnomalyModelUnit
 
 train_object = TrainObject(
     path=TrainPathObject(
-        root='datasets/re_plant', 
-        train=['train/60', 'train/top'], 
-        test_good=['good/60', 'good/top'], 
-        test_defective=['bad/60', 'bad/top'], 
+        root='datasets/temp', 
+        train=['train'], 
+        test_good=['good'], 
+        test_defective=['bad'], 
         model_save='models'
     ), 
     image_info=ImageInfoObject(
-        size=Size(width=384, height=384),
+        size=Size(width=256, height=256),
         colour_mode='rgb',
         name='plant'
     )
@@ -102,16 +102,13 @@ for img, attributes in results:
 2. **Dataset Structure**: Ensure the dataset is organized as follows:
    ```
    datasets/
-       re_plant/
+       temp/
            train/
-               60/
-               top/
+               <normal_training_images>/
            good/
-               60/
-               top/
+               <normal_testing_images>/
            bad/
-               60/
-               top/
+               <defective_testing_images>/
    ```
 3. **Model Save Path**: Trained models will be saved in the `models` directory.
 4. **Training and Testing Modes**:

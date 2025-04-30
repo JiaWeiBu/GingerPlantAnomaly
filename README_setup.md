@@ -63,11 +63,11 @@
      datasets/
          temp/
              train/
-                 <normal_training_images>/ 
+                 <normal_training_images>/
              good/
-                 <normal_testing_images>/ 
+                 <normal_testing_images>/
              bad/
-                 <defective_testing_images>/ 
+                 <defective_testing_images>/
      ```
    - Update the dataset paths in the `anomalib_train.py` file under the `TrainObject` initialization:
      ```python
@@ -204,7 +204,6 @@
 
 ## Summary
 - Install Python `3.11.9` and required dependencies.
-- Clone the repository using Git or GitHub Desktop.
 - Prepare the dataset in the specified structure.
 - Configure environment variables in the `.env` file.
 - Use Flask for training and testing or run scripts directly.
