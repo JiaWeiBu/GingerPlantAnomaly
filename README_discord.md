@@ -6,18 +6,12 @@
 1. [Overview](#overview)
 2. [Features](#features)
 3. [How It Works](#how-it-works)
-   - [Command Registration](#command-registration)
-   - [Command Execution](#command-execution)
-   - [Channel-Specific Commands](#channel-specific-commands)
 4. [Key Components](#key-components)
-   - [ChannelMessageTemplate](#channelmessagetemplate)
-   - [MessageObject](#messageobject)
-   - [MessageUnit](#messageunit)
-   - [discord_lib as a Facade](#discord_lib-as-a-facade)
 5. [Setting Up the Bot](#setting-up-the-bot)
-   - [Environment Variables](#environment-variables)
-   - [Webhook Links](#webhook-links)
-   - [Keyword and Initialization Phrase](#keyword-and-initialization-phrase)
+   - [Creating a Discord Application](#creating-a-discord-application)
+   - [Creating Webhooks](#creating-webhooks)
+   - [Creating and Inviting the Bot](#creating-and-inviting-the-bot)
+   - [Setting the Bot Token](#setting-the-bot-token)
 6. [Extending the Bot](#extending-the-bot)
 7. [Notes](#notes)
 
@@ -109,22 +103,47 @@ The `discord_lib.py` file acts as a facade to the Discord library. It abstracts 
 
 ## Setting Up the Bot
 
-### Environment Variables
-Create a `.env` file in the root directory with the following variables:
-```env
-TOKEN_BOT_GITHUB=<your-bot-token>
-CHANNEL_WEBHOOK_LOG=<webhook-url-for-log-channel>
-CHANNEL_WEBHOOK_PREDICT=<webhook-url-for-predict-channel>
-CHANNEL_WEBHOOK_DEBUG=<webhook-url-for-debug-channel>
-CHANNEL_WEBHOOK_CLONE=<webhook-url-for-clone-channel>
-```
+### Creating a Discord Application
+1. Go to the [Discord Developer Portal](https://discord.com/developers/docs/intro).
+2. Log in with your Discord account.
+3. Click on the **"New Application"** button.
+4. Enter a name for your application and click **"Create"**.
+5. Navigate to the **"Bot"** tab in the left-hand menu.
+6. Click **"Add Bot"** and confirm by clicking **"Yes, do it!"**.
+7. Copy the **Token** for your bot. This will be used in the `.env` file as `TOKEN_BOT_GITHUB`.
 
-### Webhook Links
-Each channel requires a webhook URL for sending messages. These URLs should be added to the `.env` file as shown above.
+### Creating Webhooks
+1. Open your Discord server and navigate to the channel where you want to create a webhook.
+2. Click on the channel name and select **"Edit Channel"**.
+3. Go to the **"Integrations"** tab and click **"Create Webhook"**.
+4. Set a name and optionally an avatar for the webhook.
+5. Copy the **Webhook URL** and save it. This will be used in the `.env` file as:
+   - `CHANNEL_WEBHOOK_LOG`
+   - `CHANNEL_WEBHOOK_PREDICT`
+   - `CHANNEL_WEBHOOK_DEBUG`
+   - `CHANNEL_WEBHOOK_CLONE`
 
-### Keyword and Initialization Phrase
-- **Keyword**: The bot listens for messages starting with a specific keyword. This is defined in `channel.py` as `CHANNEL_KEYWORD`.
-- **Initialization Phrase**: The bot uses an initialization phrase (`INIT_PHRASE`) to set up channel IDs. This is defined in `message_lib.py`.
+For more details, refer to the [Discord Webhooks Guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
+
+### Creating and Inviting the Bot
+1. In the [Discord Developer Portal](https://discord.com/developers/docs/intro), go to your application.
+2. Navigate to the **"OAuth2"** tab and select **"URL Generator"**.
+3. Under **Scopes**, select **"bot"**.
+4. Under **Bot Permissions**, select the permissions your bot needs (e.g., **"Send Messages"**, **"Read Messages"**, etc.).
+5. Copy the generated URL and paste it into your browser.
+6. Select the server where you want to add the bot and click **"Authorize"**.
+
+For more details, refer to the [Discord.py Bot Guide](https://discordpy.readthedocs.io/en/stable/discord.html).
+
+### Setting the Bot Token
+1. Open the `.env` file in the root directory of the project.
+2. Add the following line to set the bot token:
+   ```env
+   TOKEN_BOT_GITHUB=<your-bot-token>
+   ```
+3. Replace `<your-bot-token>` with the token you copied from the [Discord Developer Portal](https://discord.com/developers/docs/intro).
+
+**Note**: The `TOKEN_BOT_GITHUB` is used by the bot to authenticate and connect to Discord. Ensure this token is kept secure and not shared publicly.
 
 ---
 

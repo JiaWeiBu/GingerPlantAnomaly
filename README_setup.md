@@ -63,11 +63,11 @@
      datasets/
          temp/
              train/
-                 <normal_training_images>/
+                 <normal_training_images>/ 
              good/
-                 <normal_testing_images>/
+                 <normal_testing_images>/ 
              bad/
-                 <defective_testing_images>/
+                 <defective_testing_images>/ 
      ```
    - Update the dataset paths in the `anomalib_train.py` file under the `TrainObject` initialization:
      ```python
@@ -148,7 +148,57 @@
    CHANNEL_WEBHOOK_CLONE=<webhook-url-for-clone-channel>
    ```
 
-2. Replace `<your-bot-token>` and `<webhook-url-for-*>` with the appropriate values.
+2. Replace `<your-bot-token>` with the token you copied from the [Discord Developer Portal](https://discord.com/developers/docs/intro).
+
+3. Replace `<webhook-url-for-*>` with the appropriate webhook URLs for your Discord channels.
+
+**Note**: The `TOKEN_BOT_GITHUB` is used by the bot to authenticate and connect to Discord. Ensure this token is kept secure and not shared publicly.
+
+---
+
+### Setting Up Discord Bot
+
+#### Creating a Discord Application
+1. Go to the [Discord Developer Portal](https://discord.com/developers/docs/intro).
+2. Log in with your Discord account.
+3. Click on the **"New Application"** button.
+4. Enter a name for your application and click **"Create"**.
+5. Navigate to the **"Bot"** tab in the left-hand menu.
+6. Click **"Add Bot"** and confirm by clicking **"Yes, do it!"**.
+7. Copy the **Token** for your bot. This will be used in the `.env` file as `TOKEN_BOT_GITHUB`.
+
+#### Creating Webhooks
+1. Open your Discord server and navigate to the channel where you want to create a webhook.
+2. Click on the channel name and select **"Edit Channel"**.
+3. Go to the **"Integrations"** tab and click **"Create Webhook"**.
+4. Set a name and optionally an avatar for the webhook.
+5. Copy the **Webhook URL** and save it. This will be used in the `.env` file as:
+   - `CHANNEL_WEBHOOK_LOG`
+   - `CHANNEL_WEBHOOK_PREDICT`
+   - `CHANNEL_WEBHOOK_DEBUG`
+   - `CHANNEL_WEBHOOK_CLONE`
+
+For more details, refer to the [Discord Webhooks Guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
+
+#### Creating and Inviting the Bot
+1. In the [Discord Developer Portal](https://discord.com/developers/docs/intro), go to your application.
+2. Navigate to the **"OAuth2"** tab and select **"URL Generator"**.
+3. Under **Scopes**, select **"bot"**.
+4. Under **Bot Permissions**, select the permissions your bot needs (e.g., **"Send Messages"**, **"Read Messages"**, etc.).
+5. Copy the generated URL and paste it into your browser.
+6. Select the server where you want to add the bot and click **"Authorize"**.
+
+For more details, refer to the [Discord.py Bot Guide](https://discordpy.readthedocs.io/en/stable/discord.html).
+
+#### Setting the Bot Token
+1. Open the `.env` file in the root directory of the project.
+2. Add the following line to set the bot token:
+   ```env
+   TOKEN_BOT_GITHUB=<your-bot-token>
+   ```
+3. Replace `<your-bot-token>` with the token you copied from the [Discord Developer Portal](https://discord.com/developers/docs/intro).
+
+**Note**: The `TOKEN_BOT_GITHUB` is used by the bot to authenticate and connect to Discord. Ensure this token is kept secure and not shared publicly.
 
 ---
 
