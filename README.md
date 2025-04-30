@@ -12,7 +12,9 @@ An unsupervised ginger plant anomaly detection model.
 - [Results](./results/README.md)
 - [Class Documentation](./classes/README.md)
 - [Discord UI](./README_discord.md)
-- [License](./LICENSE)
+- [License](#license)
+
+---
 
 ## Introduction
 GingerPlantAnomaly is a general-purpose project designed to address the challenges of image anomaly detection, with a specific focus on detecting anomalies in ginger plants. Anomalies in ginger plants can include defects such as discoloration, deformities, or other irregularities that may affect their quality. This project aims to provide a robust and efficient solution for identifying such anomalies, which is critical for applications in agriculture, food processing, and quality control.
@@ -36,6 +38,8 @@ For example images of ginger plant anomalies and their detection results, refer 
 - [Example Image 3](./images/example3.png)
 
 By providing a comprehensive solution for anomaly detection, GingerPlantAnomaly aims to contribute to advancements in quality control and automation across various industries. Whether you are working with agricultural products, industrial components, or medical images, this project offers the tools and flexibility needed to achieve your goals.
+
+---
 
 ## Features
 ### PyCaret
@@ -100,6 +104,8 @@ By providing a comprehensive solution for anomaly detection, GingerPlantAnomaly 
   - **LLaVA-llama3**
   - **LLaVA**
 
+---
+
 ## Training and Testing Status
 - **PyCaret**:
   - Training: Done (File-based execution, no UI, no latest dataset input sequence).
@@ -109,6 +115,9 @@ By providing a comprehensive solution for anomaly detection, GingerPlantAnomaly 
   - Testing: Done.
 - **Ollama VLM**:
   - Preliminary implementation for training and testing.
+
+---
+
 
 ## Installation
 
@@ -134,6 +143,8 @@ Details about preparing the `.env` file, setting up the Discord bot, and organiz
 - This project uses **Anomalib version `1.2.0`**. The latest version (`2.0.0`) is not compatible with the current codebase.
 - For more information on setting up the environment and configuration, refer to the [Setup and Dataset README](./README_setup.md).
 
+---
+
 ## Usage
 This project is implemented using Object-Oriented Programming (OOP) principles. All core functionalities are encapsulated in classes, which can be found in the [`classes`](./classes/README.md) folder. The classes act as a package, providing modular and reusable components for anomaly detection.
 
@@ -142,6 +153,33 @@ Additionally, the `channel_template.py` file serves as a factory for implementin
 For more details on the Discord bot UI and its functionality, refer to the [Discord UI README](./README_discord.md).
 
 Refer to the [Setup and Dataset](./README_setup.md) and [Training and Testing](./README_traintest.md) documentation for detailed usage instructions.
+
+---
+
+## Setup and Dataset
+Refer to the [Setup and Dataset README](./README_setup.md) for detailed instructions on setting up the environment and preparing the dataset.
+
+---
+
+## Training and Testing
+Refer to the [Training and Testing README](./README_traintest.md) for detailed instructions on how to train and test the anomaly detection models.
+
+---
+
+## Results
+Refer to the [Results README](./results/README.md) for detailed information on the results of the anomaly detection models.
+
+---
+
+## Class Documentation
+Refer to the [Class Documentation README](./classes/README.md) for detailed documentation of the classes used in the project.
+
+---
+
+## Discord UI
+Refer to the [Discord UI README](./README_discord.md) for detailed instructions on using the Discord bot for managing anomaly detection tasks.
+
+---
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
