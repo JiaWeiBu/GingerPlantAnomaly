@@ -32,6 +32,10 @@ class MessageObject:
     - GetEmbed: Get the embed object
     - GetFile: Get the file object
 
+    TODO:
+    - Discord allows a maximum of 10 embeds per message. The current implementation does not handle this limitation.
+      Future upgrades may require splitting messages or managing multiple embeds.
+
     Example:
     >>> message_object_ = MessageObject()
     >>> message_object_.SetMessage("Hello World")

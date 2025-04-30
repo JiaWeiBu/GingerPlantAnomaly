@@ -337,6 +337,8 @@ class AnomalyModelUnit:
     @unique
     class AnomalibLoggerTypeEnum(Enum):
         """
+        TODO: Not fully implemented into the system.
+
         Enum for different types of logger for anomaly detection models.
 
         Logger from Anomalib
@@ -354,7 +356,9 @@ class AnomalyModelUnit:
     @unique
     class AnomalibTaskTypeEnum(Enum):   
         """
-        Enum for different types of task for anomaly detection models.
+        TODO: Not fully implemented into the system.
+
+        Enum for different types of tasks for anomaly detection models.
 
         Task from Anomalib
         CLASSIFICATION : Classification Task
@@ -368,6 +372,8 @@ class AnomalyModelUnit:
     @unique
     class AnomalibLearningTypeEnum(Enum):
         """
+        TODO: Not fully implemented into the system.
+
         Enum for different types of learning for anomaly detection models.
 
         Learning from Anomalib
