@@ -124,12 +124,15 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
 
                 # Determine the anomaly level and set the title and color
                 if pred_score is not None:
-                    if pred_score > 0.75:
+                    if pred_score > 0.7:
                         title = "Anomaly Detected"
                         colour = MessageObject.EmbedColourEnum.red_.value
                     elif pred_score > 0.5:
                         title = "Potential Anomaly"
                         colour = MessageObject.EmbedColourEnum.yellow_.value
+                    elif pred_score > 0.3:
+                        title = "Potential Normal"
+                        colour = MessageObject.EmbedColourEnum.blue_.value
                     else:
                         title = "Normal"
                         colour = MessageObject.EmbedColourEnum.green_.value
@@ -168,12 +171,15 @@ async def ResPredict(message: Message, message_object: MessageObject) -> None:
 
                     # Determine the anomaly level and set the title and color
                     if pred_score is not None:
-                        if pred_score > 0.75:
+                        if pred_score > 0.7:
                             title = "Anomaly Detected"
                             colour = MessageObject.EmbedColourEnum.red_.value
                         elif pred_score > 0.5:
                             title = "Potential Anomaly"
                             colour = MessageObject.EmbedColourEnum.yellow_.value
+                        elif pred_score > 0.3:
+                            title = "Potential Normal"
+                            colour = MessageObject.EmbedColourEnum.blue_.value
                         else:
                             title = "Normal"
                             colour = MessageObject.EmbedColourEnum.green_.value
