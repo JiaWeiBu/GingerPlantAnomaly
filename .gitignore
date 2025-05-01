@@ -13,3 +13,5 @@
 .env
 *.pyc
 /testtest
+*.pyc
+/__pycache__
