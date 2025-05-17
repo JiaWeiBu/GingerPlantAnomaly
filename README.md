@@ -33,9 +33,9 @@ These models were chosen based on their ability to handle complex datasets and t
 In addition to its technical capabilities, GingerPlantAnomaly is designed to be user-friendly. The repository includes clear documentation, example scripts, and a Discord bot UI for managing anomaly detection tasks interactively. This makes it accessible to a wide range of users, from researchers and developers to practitioners in the field.
 
 For example images of ginger plant anomalies and their detection results, refer to the following:
-- [Example Image 1](./images/example1.png)
-- [Example Image 2](./images/example2.png)
-- [Example Image 3](./images/example3.png)
+- ![Example Image 1](./images/example1.png)
+- ![Example Image 2](./images/example2.png)
+- ![Example Image 3](./images/example3.png)
 
 By providing a comprehensive solution for anomaly detection, GingerPlantAnomaly aims to contribute to advancements in quality control and automation across various industries. Whether you are working with agricultural products, industrial components, or medical images, this project offers the tools and flexibility needed to achieve your goals.
 
